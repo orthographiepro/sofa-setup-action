@@ -70,6 +70,7 @@ runs:
         python-version: ${{ env.PYTHON_VERSION }}
     
     - name: Install requirements
+      shell: bash
       run: |
         if [[ "$SOFA_OS" == "Linux" ]]; then
             sudo apt install -qq libeigen3-dev libboost-dev libboost-system-dev libboost-filesystem-dev libboost-program-options-dev libboost-thread-dev
@@ -85,6 +86,7 @@ runs:
         fi
     
     - name: Build and install pybind11
+      shell: bash
       run: |
         git clone -b v${PYBIND11_VERSION} --depth 1 https://github.com/pybind/pybind11.git /tmp/pybind11
         cd /tmp/pybind11
