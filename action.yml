@@ -50,7 +50,10 @@ runs:
         fi
         echo "::set-output name=run_branch::$(echo $run_branch)"
         
-        SOFA_OS="${RUNNER_OS^}" # set first char to uppercase
+        SOFA_OS="$RUNNER_OS"
+        if [[ "$SOFA_OS" == "macOS" ]]; then
+            SOFA_OS="MacOS"
+        fi
         echo "SOFA_OS=$SOFA_OS" | tee -a $GITHUB_ENV
         echo "::set-output name=sofa_os::$(echo $SOFA_OS)"
         
