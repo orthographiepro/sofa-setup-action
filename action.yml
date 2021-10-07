@@ -17,6 +17,12 @@ outputs:
   sofa_version:
     description: "SOFA version"
     value: ${{ inputs.sofa_version }}
+  sofa_os:
+    description: "Runner OS with name adapted for SOFA download"
+    value: ${{ steps.set-env-vars.outputs.sofa_os }}
+  run_branch:
+    description: "Prettified git branch of this workflow run"
+    value: ${{ steps.set-env-vars.outputs.run_branch }}
   python_version:
     description: "Python version installed for SOFA"
     value: ${{ steps.set-env-vars.outputs.python_version }}
@@ -32,23 +38,20 @@ runs:
       id: set-env-vars
       shell: bash
       run: |
-        echo github.event.number = ${{ github.event.number  }}
-        echo github.event.pull_request.number = ${{ github.event.pull_request.number }}
-        echo github.event.issue.number = ${{ github.event.issue.number }}
         if [ -n "${{ github.event.number }}" ]; then
-          GIT_BRANCH="PR-${{ github.event.number }}"
+          run_branch="PR-${{ github.event.number }}"
         elif [ -n "${{ github.event.pull_request.number }}" ]; then
-          GIT_BRANCH="PR-${{ github.event.pull_request.number }}"
+          run_branch="PR-${{ github.event.pull_request.number }}"
         elif [ -n "${{ github.event.issue.number }}" ]; then
-          GIT_BRANCH="PR-${{ github.event.issue.number }}"
+          run_branch="PR-${{ github.event.issue.number }}"
         else
-          GIT_BRANCH="${GITHUB_REF#refs/heads/}"
+          run_branch="${GITHUB_REF#refs/heads/}"
         fi
-        if [ -z "$GIT_BRANCH" ]; then exit 1; fi
-        echo "GIT_BRANCH=$GIT_BRANCH" | tee -a $GITHUB_ENV
+        echo "::set-output name=run_branch::$(echo $run_branch)"
         
         SOFA_OS="${RUNNER_OS^}" # set first char to uppercase
         echo "SOFA_OS=$SOFA_OS" | tee -a $GITHUB_ENV
+        echo "::set-output name=sofa_os::$(echo $SOFA_OS)"
         
         # TODO: find a better way to handle dependency versions
         if [[ "$SOFA_OS" == "Linux" ]]; then
@@ -60,7 +63,6 @@ runs:
         fi
         echo "PYTHON_VERSION=$PYTHON_VERSION" | tee -a $GITHUB_ENV
         echo "PYBIND11_VERSION=$PYBIND11_VERSION" | tee -a $GITHUB_ENV
-        
         echo "::set-output name=python_version::$(echo $PYTHON_VERSION)"
         echo "::set-output name=pybind11_version::$(echo $PYBIND11_VERSION)"
     
