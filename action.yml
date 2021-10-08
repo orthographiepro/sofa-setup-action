@@ -64,43 +64,73 @@ runs:
         elif [[ "$SOFA_OS" == "MacOS" ]]; then
             PYTHON_VERSION=3.9
             PYBIND11_VERSION=2.4.3
+        elif [[ "$SOFA_OS" == "Windows" ]]; then
+            PYTHON_VERSION=3.7
+            PYBIND11_VERSION=2.4.3
         fi
         echo "PYTHON_VERSION=$PYTHON_VERSION" | tee -a $GITHUB_ENV
         echo "PYBIND11_VERSION=$PYBIND11_VERSION" | tee -a $GITHUB_ENV
         echo "::set-output name=python_version::$(echo $PYTHON_VERSION)"
         echo "::set-output name=pybind11_version::$(echo $PYBIND11_VERSION)"
-    
+
     - name: Set up Python ${{ env.PYTHON_VERSION }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-    
-    - name: Install requirements
+
+    - name: [Linux] Install requirements
+      if: runner.os == 'Linux'
       shell: bash
       run: |
         # Install requirements
-        if [[ "$SOFA_OS" == "Linux" ]]; then
-            sudo apt-get -qq install libeigen3-dev libboost-dev libboost-system-dev libboost-filesystem-dev libboost-program-options-dev libboost-thread-dev
-            sudo apt-get -qq install ccache ninja-build
-            python3 -m pip install numpy scipy
-        elif [[ "$SOFA_OS" == "MacOS" ]]; then
-            brew install eigen boost
-            brew install ccache ninja
-            brew list | grep python | while read package; do
-              brew unlink $package
-            done
-            python3 -m pip install numpy scipy
-        fi
-    
+        #sudo apt-get -qq install libboost-dev libboost-system-dev libboost-filesystem-dev libboost-program-options-dev libboost-thread-dev
+        #sudo apt-get -qq install libeigen3-dev 
+        sudo apt-get -qq install ccache ninja-build
+        python3 -m pip install numpy scipy
+
+    - name: [MacOS] Install requirements
+      if: runner.os == 'macOS'
+      shell: bash
+      run: |
+        # Install requirements
+        #brew install eigen boost
+        brew install ccache ninja
+        brew list | grep python | while read package; do
+          brew unlink $package
+        done
+        python3 -m pip install numpy scipy
+
+    - name: [Windows] Install requirements
+      if: runner.os == 'Windows'
+      shell: cmd
+      run: |
+        REM Install requirements
+        choco install -y --no-progress nsis
+        choco install -y --no-progress curl
+        choco install -y --no-progress ninja
+        call refreshenv && echo OK
+        python -m pip install numpy scipy
+        
     - name: Build and install pybind11
       shell: bash
       run: |
         # Build and install pybind11
         git clone -b v${PYBIND11_VERSION} --depth 1 https://github.com/pybind/pybind11.git /tmp/pybind11
         cd /tmp/pybind11
-        cmake -DCMAKE_BUILD_TYPE=Release -DPYBIND11_TEST=OFF -DPYTHON_EXECUTABLE=$(which python${{ env.PYTHON_VERSION }}) .
-        sudo make --silent install
-    
+        if [[ "$SOFA_OS" == "Windows" ]]; then
+          cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DPYBIND11_TEST=OFF -DCMAKE_INSTALL_PREFIX="C:/dev/pybind11" .
+          ninja --silent install
+        else
+          cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DPYBIND11_TEST=OFF -DPYTHON_EXECUTABLE=$(which python${{ env.PYTHON_VERSION }}) .
+          sudo ninja --silent install
+        fi
+
+    - name: [Windows] Set pybind11_ROOT env var
+      if: runner.os == 'Windows'
+      shell: cmd
+      run: |
+        setx /M pybind11_ROOT C:\dev\pybind11
+
     - name: Download and install the latest SOFA ${{ inputs.sofa_version }} binaries
       shell: bash
       run: |
