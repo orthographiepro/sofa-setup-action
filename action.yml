@@ -61,15 +61,15 @@ runs:
         if [[ "$SOFA_OS" == "Linux" ]]; then
             PYTHON_VERSION=3.8
             PYBIND11_VERSION=2.4.3
-            GITHUB_WORKSPACE_PARENT="$(cd $GITHUB_WORKSPACE && pwd)"
+            GITHUB_WORKSPACE_PARENT="$(cd $GITHUB_WORKSPACE/.. && pwd)"
         elif [[ "$SOFA_OS" == "MacOS" ]]; then
             PYTHON_VERSION=3.9
             PYBIND11_VERSION=2.4.3
-            GITHUB_WORKSPACE_PARENT="$(cd $GITHUB_WORKSPACE && pwd)"
+            GITHUB_WORKSPACE_PARENT="$(cd $GITHUB_WORKSPACE/.. && pwd)"
         elif [[ "$SOFA_OS" == "Windows" ]]; then
             PYTHON_VERSION=3.7
             PYBIND11_VERSION=2.4.3
-            GITHUB_WORKSPACE_PARENT="$(cd $GITHUB_WORKSPACE && pwd -W)"
+            GITHUB_WORKSPACE_PARENT="$(cd $GITHUB_WORKSPACE/.. && pwd -W)"
         fi
         echo "PYTHON_VERSION=$PYTHON_VERSION" | tee -a $GITHUB_ENV
         echo "PYBIND11_VERSION=$PYBIND11_VERSION" | tee -a $GITHUB_ENV
@@ -111,7 +111,7 @@ runs:
         # Build and install pybind11
         if [[ "$SOFA_OS" == "Windows" ]]; then
           cmd //c "git clone -b v$PYBIND11_VERSION --depth 1 https://github.com/pybind/pybind11.git $GITHUB_WORKSPACE_PARENT/pybind11/src"
-          cmd //c "cd $GITHUB_WORKSPACE_PARENT/pybind11/src && cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DPYBIND11_TEST=OFF -DCMAKE_INSTALL_PREFIX=\"$GITHUB_WORKSPACE_PARENT/pybind11/install\" .
+          cmd //c "cd $GITHUB_WORKSPACE_PARENT/pybind11/src && cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DPYBIND11_TEST=OFF -DCMAKE_INSTALL_PREFIX=\"$GITHUB_WORKSPACE_PARENT/pybind11/install\" ."
           cmd //c "cd $GITHUB_WORKSPACE_PARENT/pybind11/src && ninja install"
           cmd //c "setx /M pybind11_ROOT $GITHUB_WORKSPACE_PARENT/pybind11/install"
         else
