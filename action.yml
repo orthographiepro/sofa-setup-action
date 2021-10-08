@@ -78,7 +78,7 @@ runs:
       with:
         python-version: ${{ env.PYTHON_VERSION }}
 
-    - name: [Linux] Install requirements
+    - name: (Linux) Install requirements
       if: runner.os == 'Linux'
       shell: bash
       run: |
@@ -88,7 +88,7 @@ runs:
         sudo apt-get -qq install ccache ninja-build
         python3 -m pip install numpy scipy
 
-    - name: [MacOS] Install requirements
+    - name: (MacOS) Install requirements
       if: runner.os == 'macOS'
       shell: bash
       run: |
@@ -100,7 +100,7 @@ runs:
         done
         python3 -m pip install numpy scipy
 
-    - name: [Windows] Install requirements
+    - name: (Windows) Install requirements
       if: runner.os == 'Windows'
       shell: cmd
       run: |
@@ -125,7 +125,7 @@ runs:
           sudo ninja --silent install
         fi
 
-    - name: [Windows] Set pybind11_ROOT env var
+    - name: (Windows) Set pybind11_ROOT env var
       if: runner.os == 'Windows'
       shell: cmd
       run: |
