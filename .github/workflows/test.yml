@@ -22,7 +22,7 @@ jobs:
         run: |
           # Set env vars
           SOFA_ROOT=/opt/sofa
-          if [[ "$SOFA_OS" == "Windows" ]]; then
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
             SOFA_ROOT='C:\dev\sofa'
           fi
           echo "SOFA_ROOT=$SOFA_ROOT" | tee -a $GITHUB_ENV
