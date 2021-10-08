@@ -105,13 +105,14 @@ runs:
       shell: bash
       run: |
         # Build and install pybind11
-        git clone -b v${PYBIND11_VERSION} --depth 1 https://github.com/pybind/pybind11.git /tmp/pybind11
-        cd /tmp/pybind11
         if [[ "$SOFA_OS" == "Windows" ]]; then
-          cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DPYBIND11_TEST=OFF -DCMAKE_INSTALL_PREFIX="C:/dev/pybind11" .
-          ninja --silent install
-          cmd //c 'setx /M pybind11_ROOT C:\dev\pybind11'
+          cmd //c 'git clone -b v${PYBIND11_VERSION} --depth 1 https://github.com/pybind/pybind11.git C:/dev/pybind11/src'
+          cmd //c 'cd C:/dev/pybind11/src && cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DPYBIND11_TEST=OFF -DCMAKE_INSTALL_PREFIX="C:/dev/pybind11/install" .'
+          cmd //c 'cd C:/dev/pybind11/src && ninja --silent install'
+          cmd //c 'setx /M pybind11_ROOT C:\dev\pybind11\install'
         else
+          git clone -b v${PYBIND11_VERSION} --depth 1 https://github.com/pybind/pybind11.git /tmp/pybind11
+          cd /tmp/pybind11
           cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DPYBIND11_TEST=OFF -DPYTHON_EXECUTABLE=$(which python${{ env.PYTHON_VERSION }}) .
           sudo ninja --silent install
         fi
