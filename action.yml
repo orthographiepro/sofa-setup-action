@@ -137,7 +137,12 @@ runs:
           https://ci.inria.fr/sofa-ci-dev/job/nightly-generate-binaries/CI_BRANCH=${{ inputs.sofa_version }},CI_SCOPE=minimal/lastSuccessfulBuild/artifact/${SOFA_OS}/*zip*/${SOFA_OS}.zip
         unzip -qq /tmp/sofa_zip/${SOFA_OS}.zip -d /tmp/sofa_zip
         unzip -qq /tmp/sofa_zip/${SOFA_OS}/SOFA_*.zip -d /tmp/sofa_binaries
-        sudo mv /tmp/sofa_binaries/SOFA_* '${{ inputs.sofa_root }}'
-        sudo ls -la '${{ inputs.sofa_root }}'
+        if [[ "$SOFA_OS" == "Windows" ]]; then
+          mv /tmp/sofa_binaries/SOFA_* '${{ inputs.sofa_root }}'
+          ls -la '${{ inputs.sofa_root }}'
+        else
+          sudo mv /tmp/sofa_binaries/SOFA_* '${{ inputs.sofa_root }}'
+          sudo ls -la '${{ inputs.sofa_root }}'
+        fi
         rm -rf /tmp/sofa_*
         echo "Done."
