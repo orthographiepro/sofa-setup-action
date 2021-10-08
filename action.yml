@@ -78,7 +78,7 @@ runs:
       with:
         python-version: ${{ env.PYTHON_VERSION }}
 
-    - name: (Linux) Install requirements
+    - name: Install Linux requirements
       if: ${{ 'test' == 'Linux' }}
       shell: bash
       run: |
