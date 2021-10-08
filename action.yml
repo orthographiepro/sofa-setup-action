@@ -70,14 +70,16 @@ runs:
             PYTHON_VERSION=3.7
             PYBIND11_VERSION=2.4.3
             GITHUB_WORKSPACE_PARENT="$(cd $GITHUB_WORKSPACE/.. && pwd -W)"
-            echo "vswhere -all"
-            cmd //c "vswhere -all"
-            echo "env"
-            env
+            
+            # vsdevcmd.bat is here: 'C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/Common7/Tools/vsdevcmd.bat'
+            VS_INSTALL_DIR="$(cmd //c 'vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath')"
+            VS_VSDEVCMD='C: && cd '$VS_INSTALL_DIR'\Common7\Tools && VsDevCmd.bat -host_arch=amd64 -arch=amd64 && D:'
         fi
         echo "PYTHON_VERSION=$PYTHON_VERSION" | tee -a $GITHUB_ENV
         echo "PYBIND11_VERSION=$PYBIND11_VERSION" | tee -a $GITHUB_ENV
         echo "GITHUB_WORKSPACE_PARENT=$GITHUB_WORKSPACE_PARENT" | tee -a $GITHUB_ENV
+        echo "VS_INSTALL_DIR=$VS_INSTALL_DIR" | tee -a $GITHUB_ENV
+        echo "VS_VSDEVCMD=$VS_VSDEVCMD" | tee -a $GITHUB_ENV
         echo "::set-output name=python_version::$(echo $PYTHON_VERSION)"
         echo "::set-output name=pybind11_version::$(echo $PYBIND11_VERSION)"
 
@@ -115,8 +117,8 @@ runs:
         # Build and install pybind11
         if [[ "$SOFA_OS" == "Windows" ]]; then
           cmd //c "git clone -b v$PYBIND11_VERSION --depth 1 https://github.com/pybind/pybind11.git $GITHUB_WORKSPACE_PARENT/pybind11/src"
-          cmd //c "cd $GITHUB_WORKSPACE_PARENT/pybind11/src && cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DPYBIND11_TEST=OFF -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE_PARENT/pybind11/install ."
-          cmd //c "cd $GITHUB_WORKSPACE_PARENT/pybind11/src && ninja install"
+          cmd //c "${{ env.VS_VSDEVCMD }} && cd $GITHUB_WORKSPACE_PARENT/pybind11/src && cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DPYBIND11_TEST=OFF -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE_PARENT/pybind11/install ."
+          cmd //c "${{ env.VS_VSDEVCMD }} && cd $GITHUB_WORKSPACE_PARENT/pybind11/src && ninja install"
           cmd //c "setx /M pybind11_ROOT $GITHUB_WORKSPACE_PARENT/pybind11/install"
         else
           git clone -b v${PYBIND11_VERSION} --depth 1 https://github.com/pybind/pybind11.git /tmp/pybind11
