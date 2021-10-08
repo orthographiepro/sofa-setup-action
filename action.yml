@@ -79,7 +79,7 @@ runs:
         python-version: ${{ env.PYTHON_VERSION }}
 
     - name: (Linux) Install requirements
-      if: runner.os == 'Linux'
+      if: ${{ runner.os == 'Linux' }}
       shell: bash
       run: |
         # Install requirements
@@ -89,7 +89,7 @@ runs:
         python3 -m pip install numpy scipy
 
     - name: (MacOS) Install requirements
-      if: runner.os == 'macOS'
+      if: ${{ runner.os == 'macOS' }}
       shell: bash
       run: |
         # Install requirements
@@ -101,7 +101,7 @@ runs:
         python3 -m pip install numpy scipy
 
     - name: (Windows) Install requirements
-      if: runner.os == 'Windows'
+      if: ${{ runner.os == 'Windows' }}
       shell: cmd
       run: |
         REM Install requirements
@@ -126,7 +126,7 @@ runs:
         fi
 
     - name: (Windows) Set pybind11_ROOT env var
-      if: runner.os == 'Windows'
+      if: ${{ runner.os == 'Windows' }}
       shell: cmd
       run: |
         setx /M pybind11_ROOT C:\dev\pybind11
