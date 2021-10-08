@@ -88,60 +88,60 @@ runs:
         sudo apt-get -qq install ccache ninja-build
         python3 -m pip install numpy scipy
 
-    - name: (MacOS) Install requirements
-      if: ${{ runner.os == 'macOS' }}
-      shell: bash
-      run: |
-        # Install requirements
-        #brew install eigen boost
-        brew install ccache ninja
-        brew list | grep python | while read package; do
-          brew unlink $package
-        done
-        python3 -m pip install numpy scipy
-
-    - name: (Windows) Install requirements
-      if: ${{ runner.os == 'Windows' }}
-      shell: cmd
-      run: |
-        REM Install requirements
-        choco install -y --no-progress nsis
-        choco install -y --no-progress curl
-        choco install -y --no-progress ninja
-        call refreshenv && echo OK
-        python -m pip install numpy scipy
-        
-    - name: Build and install pybind11
-      shell: bash
-      run: |
-        # Build and install pybind11
-        git clone -b v${PYBIND11_VERSION} --depth 1 https://github.com/pybind/pybind11.git /tmp/pybind11
-        cd /tmp/pybind11
-        if [[ "$SOFA_OS" == "Windows" ]]; then
-          cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DPYBIND11_TEST=OFF -DCMAKE_INSTALL_PREFIX="C:/dev/pybind11" .
-          ninja --silent install
-        else
-          cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DPYBIND11_TEST=OFF -DPYTHON_EXECUTABLE=$(which python${{ env.PYTHON_VERSION }}) .
-          sudo ninja --silent install
-        fi
-
-    - name: (Windows) Set pybind11_ROOT env var
-      if: ${{ runner.os == 'Windows' }}
-      shell: cmd
-      run: |
-        setx /M pybind11_ROOT C:\dev\pybind11
-
-    - name: Download and install the latest SOFA ${{ inputs.sofa_version }} binaries
-      shell: bash
-      run: |
-        # Download and install the latest SOFA ${{ inputs.sofa_version }} binaries
-        mkdir -p /tmp/sofa_zip
-        mkdir -p /tmp/sofa_binaries
-        curl --output /tmp/sofa_zip/${SOFA_OS}.zip -L \
-          https://ci.inria.fr/sofa-ci-dev/job/nightly-generate-binaries/CI_BRANCH=${{ inputs.sofa_version }},CI_SCOPE=minimal/lastSuccessfulBuild/artifact/${SOFA_OS}/*zip*/${SOFA_OS}.zip
-        unzip -qq /tmp/sofa_zip/${SOFA_OS}.zip -d /tmp/sofa_zip
-        unzip -qq /tmp/sofa_zip/${SOFA_OS}/SOFA_*.zip -d /tmp/sofa_binaries
-        sudo mv /tmp/sofa_binaries/SOFA_* ${{ inputs.sofa_root }}
-        sudo ls -la ${{ inputs.sofa_root }}
-        rm -rf /tmp/sofa_*
-        echo "Done."
+#    - name: (MacOS) Install requirements
+#      if: ${{ runner.os == 'macOS' }}
+#      shell: bash
+#      run: |
+#        # Install requirements
+#        #brew install eigen boost
+#        brew install ccache ninja
+#        brew list | grep python | while read package; do
+#          brew unlink $package
+#        done
+#        python3 -m pip install numpy scipy
+#
+#    - name: (Windows) Install requirements
+#      if: ${{ runner.os == 'Windows' }}
+#      shell: cmd
+#      run: |
+#        REM Install requirements
+#        choco install -y --no-progress nsis
+#        choco install -y --no-progress curl
+#        choco install -y --no-progress ninja
+#        call refreshenv && echo OK
+#        python -m pip install numpy scipy
+#        
+#    - name: Build and install pybind11
+#      shell: bash
+#      run: |
+#        # Build and install pybind11
+#        git clone -b v${PYBIND11_VERSION} --depth 1 https://github.com/pybind/pybind11.git /tmp/pybind11
+#        cd /tmp/pybind11
+#        if [[ "$SOFA_OS" == "Windows" ]]; then
+#          cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DPYBIND11_TEST=OFF -DCMAKE_INSTALL_PREFIX="C:/dev/pybind11" .
+#          ninja --silent install
+#        else
+#          cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DPYBIND11_TEST=OFF -DPYTHON_EXECUTABLE=$(which python${{ env.PYTHON_VERSION }}) .
+#          sudo ninja --silent install
+#        fi
+#
+#    - name: (Windows) Set pybind11_ROOT env var
+#      if: ${{ runner.os == 'Windows' }}
+#      shell: cmd
+#      run: |
+#        setx /M pybind11_ROOT C:\dev\pybind11
+#
+#    - name: Download and install the latest SOFA ${{ inputs.sofa_version }} binaries
+#      shell: bash
+#      run: |
+#        # Download and install the latest SOFA ${{ inputs.sofa_version }} binaries
+#        mkdir -p /tmp/sofa_zip
+#        mkdir -p /tmp/sofa_binaries
+#        curl --output /tmp/sofa_zip/${SOFA_OS}.zip -L \
+#          https://ci.inria.fr/sofa-ci-dev/job/nightly-generate-binaries/CI_BRANCH=${{ inputs.sofa_version }},CI_SCOPE=minimal/lastSuccessfulBuild/artifact/${SOFA_OS}/*zip*/${SOFA_OS}.zip
+#        unzip -qq /tmp/sofa_zip/${SOFA_OS}.zip -d /tmp/sofa_zip
+#        unzip -qq /tmp/sofa_zip/${SOFA_OS}/SOFA_*.zip -d /tmp/sofa_binaries
+#        sudo mv /tmp/sofa_binaries/SOFA_* ${{ inputs.sofa_root }}
+#        sudo ls -la ${{ inputs.sofa_root }}
+#        rm -rf /tmp/sofa_*
+#        echo "Done."
