@@ -29,6 +29,9 @@ outputs:
   pybind11_version:
     description: "Pybind11 version installed for SOFA"
     value: ${{ steps.set-env-vars.outputs.pybind11_version }}
+  vs_vsdevcmd:
+    description: "Command to init VS environment"
+    value: ${{ steps.set-env-vars.outputs.vs_vsdevcmd }}
 
 # Action code
 runs:
