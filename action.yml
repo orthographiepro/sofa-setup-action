@@ -82,6 +82,7 @@ runs:
         echo "VS_VSDEVCMD=$VS_VSDEVCMD" | tee -a $GITHUB_ENV
         echo "::set-output name=python_version::$(echo $PYTHON_VERSION)"
         echo "::set-output name=pybind11_version::$(echo $PYBIND11_VERSION)"
+        echo "::set-output name=vs_vsdevcmd::$(echo $VS_VSDEVCMD)"
 
     - name: Set up Python ${{ env.PYTHON_VERSION }}
       uses: actions/setup-python@v2
