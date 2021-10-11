@@ -143,11 +143,12 @@ runs:
         unzip -qq /tmp/sofa_zip/${SOFA_OS}/SOFA_*.zip -d /tmp/sofa_binaries
         if [[ "$SOFA_OS" == "Windows" ]]; then
           mkdir -p "${{ inputs.sofa_root }}"
-          mv /tmp/sofa_binaries/SOFA_* "${{ inputs.sofa_root }}"
+          mv /tmp/sofa_binaries/SOFA_*/* "${{ inputs.sofa_root }}"
           ls -la "${{ inputs.sofa_root }}"
         else
           sudo mv /tmp/sofa_binaries/SOFA_* "${{ inputs.sofa_root }}"
           sudo ls -la "${{ inputs.sofa_root }}"
         fi
         rm -rf /tmp/sofa_*
+        echo "${{ inputs.sofa_root }}" >> $GITHUB_PATH
         echo "Done."

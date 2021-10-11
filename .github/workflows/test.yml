@@ -38,3 +38,7 @@ jobs:
         shell: bash
         run: |
           echo "steps.sofa.outputs = ${{ toJSON(steps.sofa.outputs) }}"
+          echo "----------------------------"
+          ls -la '${{ steps.sofa.outputs.sofa_root }}'
+          echo "----------------------------"
+          env
