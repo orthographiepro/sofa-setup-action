@@ -41,4 +41,4 @@ jobs:
           echo "----------------------------"
           ls -la '${{ steps.sofa.outputs.sofa_root }}'
           echo "----------------------------"
-          env
+          echo "PATH = $PATH"
