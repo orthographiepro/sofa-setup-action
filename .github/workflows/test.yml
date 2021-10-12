@@ -48,14 +48,6 @@ jobs:
             cmd //c 'echo Eigen3_ROOT=%Eigen3_ROOT%'
             cmd //c 'echo BOOST_ROOT=%BOOST_ROOT%'
             cmd //c 'echo Boost_ROOT=%Boost_ROOT%'
-            
-            echo "----------------------------"
-            ls -la "${{ steps.sofa.outputs.vs_install_dir }}/VS/Tools/MSVC"
-            echo "----------------------------"
-            ls -la "${{ steps.sofa.outputs.vs_install_dir }}/VS/Tools/MSVC/*"
-            echo "----------------------------"
-            ls -la "${{ steps.sofa.outputs.vs_install_dir }}/VS/Tools/MSVC/*/include"
-            echo "----------------------------"
           fi
           echo "----------------------------"
           
