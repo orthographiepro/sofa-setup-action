@@ -128,6 +128,7 @@ runs:
           EIGEN_MINOR=3
           EIGEN_PATCH=7
           EIGEN_INSTALL_DIR="C:/eigen"
+          mkdir -p "$EIGEN_INSTALL_DIR/tmp"
           curl -L "https://gitlab.com/libeigen/eigen/-/archive/${EIGEN_MAJOR}.${EIGEN_MINOR}.${EIGEN_PATCH}/eigen-${EIGEN_MAJOR}.${EIGEN_MINOR}.${EIGEN_PATCH}.zip" --output "C:/eigen.zip"
           unzip -qq "C:/eigen.zip" -d "$EIGEN_INSTALL_DIR/tmp"
           mv $EIGEN_INSTALL_DIR/tmp/eigen-*/* $EIGEN_INSTALL_DIR
