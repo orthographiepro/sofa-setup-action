@@ -29,6 +29,9 @@ outputs:
   pybind11_version:
     description: "Pybind11 version installed for SOFA"
     value: ${{ steps.set-env-vars.outputs.pybind11_version }}
+  vs_install_dir:
+    description: "VS install directory"
+    value: ${{ steps.set-env-vars.outputs.vs_install_dir }}
   vs_vsdevcmd:
     description: "Command to init VS environment"
     value: ${{ steps.set-env-vars.outputs.vs_vsdevcmd }}
@@ -85,6 +88,7 @@ runs:
         echo "VS_VSDEVCMD=$VS_VSDEVCMD" | tee -a $GITHUB_ENV
         echo "::set-output name=python_version::$(echo $PYTHON_VERSION)"
         echo "::set-output name=pybind11_version::$(echo $PYBIND11_VERSION)"
+        echo "::set-output name=vs_install_dir::$(echo $VS_INSTALL_DIR)"
         echo "::set-output name=vs_vsdevcmd::$(echo $VS_VSDEVCMD)"
 
     - name: Install Python ${{ env.PYTHON_VERSION }}
