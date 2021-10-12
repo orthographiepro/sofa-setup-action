@@ -84,15 +84,15 @@ runs:
             echo "----------------------------"
             ls -la "$VS_INSTALL_DIR"
             echo "----------------------------"
-            ls -la "$VS_INSTALL_DIR/VC"
+            ls -la "$VS_INSTALL_DIR"/VC
             echo "----------------------------"
-            ls -la "$VS_INSTALL_DIR/VC/Tools"
+            ls -la "$VS_INSTALL_DIR"/VC/Tools
             echo "----------------------------"
-            ls -la "$VS_INSTALL_DIR/VC/Tools/MSVC"
+            ls -la "$VS_INSTALL_DIR"/VC/Tools/MSVC
             echo "----------------------------"
-            ls -la "$VS_INSTALL_DIR/VC/Tools/MSVC/*"
+            ls -la "$VS_INSTALL_DIR"/VC/Tools/MSVC/*
             echo "----------------------------"
-            ls -la "$VS_INSTALL_DIR/VC/Tools/MSVC/*/include"
+            ls -la "$VS_INSTALL_DIR"/VC/Tools/MSVC/*/include
             echo "----------------------------"
         fi
         echo "PYTHON_VERSION=$PYTHON_VERSION" | tee -a $GITHUB_ENV
