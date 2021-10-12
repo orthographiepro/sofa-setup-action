@@ -167,14 +167,27 @@ runs:
         if [[ "$SOFA_OS" == "Windows" ]]; then
           PYBIND11_INSTALL_DIR="C:/pybind11"
           git clone -b v$PYBIND11_VERSION --depth 1 https://github.com/pybind/pybind11.git C:/pybind11_tmp
-          cmd //c "${{ env.VS_VSDEVCMD }} && C: && cd C:/pybind11_tmp && cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DPYBIND11_TEST=OFF -DCMAKE_INSTALL_PREFIX=$PYBIND11_INSTALL_DIR . && ninja install"
+          cmd //c "${{ env.VS_VSDEVCMD }} && \
+            cd C:/pybind11_tmp && C: && \
+            cmake \
+              -GNinja \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DPYBIND11_TEST=OFF \
+              -DCMAKE_INSTALL_PREFIX=$PYBIND11_INSTALL_DIR \
+              . && \
+              ninja install"
           rm -rf C:/pybind11_tmp*
-          echo "pybind11_ROOT=$EIGEN_INSTALL_DIR" | tee -a $GITHUB_ENV
+          echo "pybind11_ROOT=$PYBIND11_INSTALL_DIR" | tee -a $GITHUB_ENV
           echo "$PYBIND11_INSTALL_DIR" >> $GITHUB_PATH
         else
           git clone -b v${PYBIND11_VERSION} --depth 1 https://github.com/pybind/pybind11.git /tmp/pybind11
           cd /tmp/pybind11
-          cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DPYBIND11_TEST=OFF -DPYTHON_EXECUTABLE=$(which python${{ env.PYTHON_VERSION }}) .
+          cmake \
+            -GNinja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DPYBIND11_TEST=OFF \
+            -DPYTHON_EXECUTABLE=$(which python${{ env.PYTHON_VERSION }}) \
+            .
           sudo ninja install
         fi
 
