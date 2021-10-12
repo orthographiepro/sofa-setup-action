@@ -114,15 +114,17 @@ runs:
           cmd //c 'choco install -y --no-progress ninja'
           
           cmd //c 'choco install -y --no-progress boost-msvc-14.2'
-          cmd //c 'setx /M BOOST_ROOT C:\local\boost_1_74_0'
-          cmd //c 'setx /M Boost_ROOT C:\local\boost_1_74_0'
-          echo 'C:\\local\\boost_1_74_0' >> $GITHUB_PATH
+          boost_install_dir='C:/local/boost_1_74_0'
+          echo "BOOST_ROOT=$boost_install_dir" | tee -a $GITHUB_ENV
+          echo "Boost_ROOT=$boost_install_dir" | tee -a $GITHUB_ENV
+          echo "$boost_install_dir" >> $GITHUB_PATH
           
           curl -L "https://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.zip" --output "C:/eigen.zip"
           unzip -qq "C:/eigen.zip" -d "C:/eigen" && rm "C:/eigen.zip"
-          cmd //c 'setx /M EIGEN3_ROOT C:\eigen\eigen-3.3.7'
-          cmd //c 'setx /M Eigen3_ROOT C:\eigen\eigen-3.3.7'
-          echo 'C:\\eigen\\eigen-3.3.7' >> $GITHUB_PATH
+          eigen_install_dir='C:/eigen/eigen-3.3.7'
+          echo "EIGEN3_ROOT=$eigen_install_dir" | tee -a $GITHUB_ENV
+          echo "Eigen3_ROOT=$eigen_install_dir" | tee -a $GITHUB_ENV
+          echo "$eigen_install_dir" >> $GITHUB_PATH
             
           cmd //c 'call refreshenv && echo OK'
           cmd //c 'python -m pip install numpy scipy'
@@ -133,10 +135,10 @@ runs:
       run: |
         # Build and install pybind11
         if [[ "$SOFA_OS" == "Windows" ]]; then
-          cmd //c "git clone -b v$PYBIND11_VERSION --depth 1 https://github.com/pybind/pybind11.git $GITHUB_WORKSPACE_PARENT/pybind11/src"
-          cmd //c "${{ env.VS_VSDEVCMD }} && cd $GITHUB_WORKSPACE_PARENT/pybind11/src && cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DPYBIND11_TEST=OFF -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE_PARENT/pybind11/install ."
-          cmd //c "${{ env.VS_VSDEVCMD }} && cd $GITHUB_WORKSPACE_PARENT/pybind11/src && ninja install"
-          cmd //c "setx /M pybind11_ROOT $GITHUB_WORKSPACE_PARENT/pybind11/install"
+          cmd //c "git clone -b v$PYBIND11_VERSION --depth 1 https://github.com/pybind/pybind11.git C:/pybind11/src"
+          cmd //c "${{ env.VS_VSDEVCMD }} && cd C:/pybind11/src && cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DPYBIND11_TEST=OFF -DCMAKE_INSTALL_PREFIX=C:/pybind11/install ."
+          cmd //c "${{ env.VS_VSDEVCMD }} && cd C:/pybind11/src && ninja install"
+          cmd //c "setx /M pybind11_ROOT C:/pybind11/install"
         else
           git clone -b v${PYBIND11_VERSION} --depth 1 https://github.com/pybind/pybind11.git /tmp/pybind11
           cd /tmp/pybind11
