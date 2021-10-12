@@ -96,13 +96,14 @@ runs:
       shell: bash
       run: |
         if [[ "$SOFA_OS" == "Linux" ]]; then
-          #sudo apt-get -qq install libboost-dev libboost-system-dev libboost-filesystem-dev libboost-program-options-dev libboost-thread-dev
-          #sudo apt-get -qq install libeigen3-dev 
           sudo apt-get -qq install ccache ninja-build
+          sudo apt-get -qq install libboost-dev libboost-system-dev libboost-filesystem-dev libboost-program-options-dev libboost-thread-dev
+          sudo apt-get -qq install libeigen3-dev 
           python3 -m pip install numpy scipy
         elif [[ "$SOFA_OS" == "MacOS" ]]; then
-          #brew install eigen boost
           brew install ccache ninja
+          brew install boost
+          brew install eigen
           brew list | grep python | while read package; do
             brew unlink $package
           done
@@ -111,6 +112,19 @@ runs:
           cmd //c 'choco install -y --no-progress nsis'
           cmd //c 'choco install -y --no-progress curl'
           cmd //c 'choco install -y --no-progress ninja'
+          
+          cmd //c 'choco install -y --no-progress boost-msvc-14.2'
+          cmd //c 'setx /M BOOST_ROOT C:\local\boost_1_74_0'
+          cmd //c 'setx /M Boost_ROOT C:\local\boost_1_74_0'
+          echo 'C:\\local\\boost_1_74_0' >> $GITHUB_PATH
+          
+          curl -L "https://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.zip" --output "C:/eigen.zip"
+          unzip -qq "C:/eigen.zip" -d "C:/eigen" && rm "C:/eigen.zip"
+          cmd //c 'setx /M EIGEN3_ROOT C:\eigen\eigen-3.3.7'
+          cmd //c 'setx /M Eigen3_ROOT C:\eigen\eigen-3.3.7'
+          cmd //c 'dir %Eigen3_ROOT%'
+          echo 'C:\\eigen\\eigen-3.3.7' >> $GITHUB_PATH
+            
           cmd //c 'call refreshenv && echo OK'
           cmd //c 'python -m pip install numpy scipy'
         fi
