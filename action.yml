@@ -80,20 +80,6 @@ runs:
             # vsdevcmd.bat is here: 'C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/Common7/Tools/vsdevcmd.bat'
             VS_INSTALL_DIR="$(cmd //c 'vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath')"
             VS_VSDEVCMD='C: && cd '$VS_INSTALL_DIR'\Common7\Tools && VsDevCmd.bat -host_arch=amd64 -arch=amd64 && D:'
-            
-            echo "----------------------------"
-            ls -la "$VS_INSTALL_DIR"
-            echo "----------------------------"
-            ls -la "$VS_INSTALL_DIR"/VC
-            echo "----------------------------"
-            ls -la "$VS_INSTALL_DIR"/VC/Tools
-            echo "----------------------------"
-            ls -la "$VS_INSTALL_DIR"/VC/Tools/MSVC
-            echo "----------------------------"
-            ls -la "$VS_INSTALL_DIR"/VC/Tools/MSVC/*
-            echo "----------------------------"
-            ls -la "$VS_INSTALL_DIR"/VC/Tools/MSVC/*/include
-            echo "----------------------------"
         fi
         echo "PYTHON_VERSION=$PYTHON_VERSION" | tee -a $GITHUB_ENV
         echo "PYBIND11_VERSION=$PYBIND11_VERSION" | tee -a $GITHUB_ENV
