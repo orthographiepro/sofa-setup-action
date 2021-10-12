@@ -42,3 +42,12 @@ jobs:
           ls -la '${{ steps.sofa.outputs.sofa_root }}'
           echo "----------------------------"
           echo "PATH = $PATH"
+          echo "----------------------------"          
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            cmd //c 'echo EIGEN3_ROOT=%EIGEN3_ROOT%'
+            cmd //c 'echo Eigen3_ROOT=%Eigen3_ROOT%'
+            cmd //c 'echo BOOST_ROOT=%BOOST_ROOT%'
+            cmd //c 'echo Boost_ROOT=%Boost_ROOT%'
+          fi
+          echo "----------------------------"
+          
