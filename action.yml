@@ -87,69 +87,90 @@ runs:
         echo "::set-output name=pybind11_version::$(echo $PYBIND11_VERSION)"
         echo "::set-output name=vs_vsdevcmd::$(echo $VS_VSDEVCMD)"
 
-    - name: Set up Python ${{ env.PYTHON_VERSION }}
+    - name: Install Python ${{ env.PYTHON_VERSION }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ env.PYTHON_VERSION }}
 
-    - name: Install requirements
+    - name: Install numpy and scipy
       shell: bash
       run: |
         if [[ "$SOFA_OS" == "Linux" ]]; then
-          sudo apt-get -qq install ccache ninja-build
-          sudo apt-get -qq install libboost-dev libboost-system-dev libboost-filesystem-dev libboost-program-options-dev libboost-thread-dev
-          sudo apt-get -qq install libeigen3-dev 
           python3 -m pip install numpy scipy
         elif [[ "$SOFA_OS" == "MacOS" ]]; then
-          brew install ccache ninja
-          brew install boost
-          brew install eigen
           brew list | grep python | while read package; do
             brew unlink $package
           done
           python3 -m pip install numpy scipy
         elif [[ "$SOFA_OS" == "Windows" ]]; then
-          cmd //c 'choco install -y --no-progress nsis'
-          cmd //c 'choco install -y --no-progress curl'
-          cmd //c 'choco install -y --no-progress ninja'
-          
+          cmd //c 'python -m pip install numpy scipy'
+        fi
+      
+    - name: Install build tools
+      shell: bash
+      run: |
+        if [[ "$SOFA_OS" == "Linux" ]]; then
+          sudo apt-get -qq install ccache ninja-build
+        elif [[ "$SOFA_OS" == "MacOS" ]]; then
+          brew install ccache ninja
+        elif [[ "$SOFA_OS" == "Windows" ]]; then
+          cmd //c 'choco install -y --no-progress nsis curl ninja'
+        fi
+        
+    - name: Install Boost
+      shell: bash
+      run: |
+        if [[ "$SOFA_OS" == "Linux" ]]; then
+          sudo apt-get -qq install libboost-dev libboost-system-dev libboost-filesystem-dev libboost-program-options-dev libboost-thread-dev
+        elif [[ "$SOFA_OS" == "MacOS" ]]; then
+          brew install boost
+        elif [[ "$SOFA_OS" == "Windows" ]]; then
           BOOST_MAJOR=1
           BOOST_MINOR=69
           BOOST_PATCH=0
           BOOST_INSTALL_DIR="C:/boost"
-          curl -L "https://boost.teeks99.com/bin/${BOOST_MAJOR}.${BOOST_MINOR}.${BOOST_PATCH}/boost_${BOOST_MAJOR}_${BOOST_MINOR}_${BOOST_PATCH}-msvc-14.1-64.exe" --output "C:/boost.exe"
-          cmd //c "C:/boost.exe /NORESTART /VERYSILENT /DIR=$BOOST_INSTALL_DIR"
-          rm -f "C:/boost.exe"
+          curl -L "https://boost.teeks99.com/bin/${BOOST_MAJOR}.${BOOST_MINOR}.${BOOST_PATCH}/boost_${BOOST_MAJOR}_${BOOST_MINOR}_${BOOST_PATCH}-msvc-14.1-64.exe" --output "C:/boost_tmp.exe"
+          cmd //c "C:/boost_tmp.exe /NORESTART /VERYSILENT /DIR=$BOOST_INSTALL_DIR"
+          rm -rf C:/boost_tmp*
           echo "BOOST_ROOT=$BOOST_INSTALL_DIR" | tee -a $GITHUB_ENV
           echo "Boost_ROOT=$BOOST_INSTALL_DIR" | tee -a $GITHUB_ENV
           echo "$BOOST_INSTALL_DIR" >> $GITHUB_PATH
-          
+        fi
+        
+    - name: Install Eigen
+      shell: bash
+      run: |
+        if [[ "$SOFA_OS" == "Linux" ]]; then
+          sudo apt-get -qq install libeigen3-dev 
+        elif [[ "$SOFA_OS" == "MacOS" ]]; then
+          brew install eigen
+        elif [[ "$SOFA_OS" == "Windows" ]]; then
           EIGEN_MAJOR=3
           EIGEN_MINOR=3
           EIGEN_PATCH=7
           EIGEN_INSTALL_DIR="C:/eigen"
-          mkdir -p "$EIGEN_INSTALL_DIR/tmp"
-          curl -L "https://gitlab.com/libeigen/eigen/-/archive/${EIGEN_MAJOR}.${EIGEN_MINOR}.${EIGEN_PATCH}/eigen-${EIGEN_MAJOR}.${EIGEN_MINOR}.${EIGEN_PATCH}.zip" --output "C:/eigen.zip"
-          unzip -qq "C:/eigen.zip" -d "$EIGEN_INSTALL_DIR/tmp"
-          mv $EIGEN_INSTALL_DIR/tmp/eigen-*/* $EIGEN_INSTALL_DIR
-          rm -f "C:/eigen.zip"
-          rm -rf "$EIGEN_INSTALL_DIR/tmp"
+          mkdir -p "$EIGEN_INSTALL_DIR"
+          mkdir -p "C:/eigen_tmp"
+          curl -L "https://gitlab.com/libeigen/eigen/-/archive/${EIGEN_MAJOR}.${EIGEN_MINOR}.${EIGEN_PATCH}/eigen-${EIGEN_MAJOR}.${EIGEN_MINOR}.${EIGEN_PATCH}.zip" --output "C:/eigen_tmp.zip"
+          unzip -qq "C:/eigen_tmp.zip" -d "C:/eigen_tmp"
+          mv C:/eigen_tmp/eigen-*/* $EIGEN_INSTALL_DIR
+          rm -rf C:/eigen_tmp*
           echo "EIGEN3_ROOT=$EIGEN_INSTALL_DIR" | tee -a $GITHUB_ENV
           echo "Eigen3_ROOT=$EIGEN_INSTALL_DIR" | tee -a $GITHUB_ENV
           echo "$EIGEN_INSTALL_DIR" >> $GITHUB_PATH
-          
-          cmd //c 'python -m pip install numpy scipy'
         fi
         
-    - name: Build and install pybind11
+    - name: Install pybind11
       shell: bash
       run: |
         # Build and install pybind11
         if [[ "$SOFA_OS" == "Windows" ]]; then
-          cmd //c "git clone -b v$PYBIND11_VERSION --depth 1 https://github.com/pybind/pybind11.git C:/pybind11/src"
-          cmd //c "${{ env.VS_VSDEVCMD }} && cd C:/pybind11/src && cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DPYBIND11_TEST=OFF -DCMAKE_INSTALL_PREFIX=C:/pybind11/install ."
-          cmd //c "${{ env.VS_VSDEVCMD }} && cd C:/pybind11/src && ninja install"
-          cmd //c "setx /M pybind11_ROOT C:/pybind11/install"
+          PYBIND11_INSTALL_DIR="C:/pybind11"
+          git clone -b v$PYBIND11_VERSION --depth 1 https://github.com/pybind/pybind11.git C:/pybind11_tmp
+          cmd //c "${{ env.VS_VSDEVCMD }} && C: && cd C:/pybind11_tmp && cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DPYBIND11_TEST=OFF -DCMAKE_INSTALL_PREFIX=$PYBIND11_INSTALL_DIR . && ninja install"
+          rm -rf C:/pybind11_tmp*
+          echo "pybind11_ROOT=$EIGEN_INSTALL_DIR" | tee -a $GITHUB_ENV
+          echo "$PYBIND11_INSTALL_DIR" >> $GITHUB_PATH
         else
           git clone -b v${PYBIND11_VERSION} --depth 1 https://github.com/pybind/pybind11.git /tmp/pybind11
           cd /tmp/pybind11
