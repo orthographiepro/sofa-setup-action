@@ -122,7 +122,6 @@ runs:
           unzip -qq "C:/eigen.zip" -d "C:/eigen" && rm "C:/eigen.zip"
           cmd //c 'setx /M EIGEN3_ROOT C:\eigen\eigen-3.3.7'
           cmd //c 'setx /M Eigen3_ROOT C:\eigen\eigen-3.3.7'
-          cmd //c 'dir %Eigen3_ROOT%'
           echo 'C:\\eigen\\eigen-3.3.7' >> $GITHUB_PATH
             
           cmd //c 'call refreshenv && echo OK'
