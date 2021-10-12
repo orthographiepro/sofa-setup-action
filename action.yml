@@ -113,20 +113,30 @@ runs:
           cmd //c 'choco install -y --no-progress curl'
           cmd //c 'choco install -y --no-progress ninja'
           
-          cmd //c 'choco install -y --no-progress boost-msvc-14.2'
-          boost_install_dir='C:/local/boost_1_74_0'
-          echo "BOOST_ROOT=$boost_install_dir" | tee -a $GITHUB_ENV
-          echo "Boost_ROOT=$boost_install_dir" | tee -a $GITHUB_ENV
-          echo "$boost_install_dir" >> $GITHUB_PATH
+          BOOST_MAJOR=1
+          BOOST_MINOR=69
+          BOOST_PATCH=0
+          BOOST_INSTALL_DIR="C:/boost"
+          curl -L "https://boost.teeks99.com/bin/${BOOST_MAJOR}.${BOOST_MINOR}.${BOOST_PATCH}/boost_${BOOST_MAJOR}_${BOOST_MINOR}_${BOOST_PATCH}-msvc-14.1-64.exe" --output "C:/boost.exe"
+          cmd //c "C:/boost.exe /NORESTART /VERYSILENT /DIR=$BOOST_INSTALL_DIR"
+          rm -f "C:/boost.exe"
+          echo "BOOST_ROOT=$BOOST_INSTALL_DIR" | tee -a $GITHUB_ENV
+          echo "Boost_ROOT=$BOOST_INSTALL_DIR" | tee -a $GITHUB_ENV
+          echo "$BOOST_INSTALL_DIR" >> $GITHUB_PATH
           
-          curl -L "https://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.zip" --output "C:/eigen.zip"
-          unzip -qq "C:/eigen.zip" -d "C:/eigen" && rm "C:/eigen.zip"
-          eigen_install_dir='C:/eigen/eigen-3.3.7'
-          echo "EIGEN3_ROOT=$eigen_install_dir" | tee -a $GITHUB_ENV
-          echo "Eigen3_ROOT=$eigen_install_dir" | tee -a $GITHUB_ENV
-          echo "$eigen_install_dir" >> $GITHUB_PATH
-            
-          cmd //c 'call refreshenv && echo OK'
+          EIGEN_MAJOR=3
+          EIGEN_MINOR=3
+          EIGEN_PATCH=7
+          EIGEN_INSTALL_DIR="C:/eigen"
+          curl -L "https://gitlab.com/libeigen/eigen/-/archive/${EIGEN_MAJOR}.${EIGEN_MINOR}.${EIGEN_PATCH}/eigen-${EIGEN_MAJOR}.${EIGEN_MINOR}.${EIGEN_PATCH}.zip" --output "C:/eigen.zip"
+          unzip -qq "C:/eigen.zip" -d "$EIGEN_INSTALL_DIR/tmp"
+          mv $EIGEN_INSTALL_DIR/tmp/eigen-*/* $EIGEN_INSTALL_DIR
+          rm -f "C:/eigen.zip"
+          rm -rf "$EIGEN_INSTALL_DIR/tmp"
+          echo "EIGEN3_ROOT=$EIGEN_INSTALL_DIR" | tee -a $GITHUB_ENV
+          echo "Eigen3_ROOT=$EIGEN_INSTALL_DIR" | tee -a $GITHUB_ENV
+          echo "$EIGEN_INSTALL_DIR" >> $GITHUB_PATH
+          
           cmd //c 'python -m pip install numpy scipy'
         fi
         
