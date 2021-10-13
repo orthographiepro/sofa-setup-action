@@ -103,7 +103,7 @@ runs:
     - name: Set vars PYTHON_ROOT and outputs.python_root 
       shell: bash
       run: |
-        PYTHON_ROOT="$(find $RUNNER_TOOL_CACHE -maxdepth 3 -type d -path '**/Python/${{ steps.sofa.outputs.python_version }}*/x64')"
+        PYTHON_ROOT="$(find $RUNNER_TOOL_CACHE -maxdepth 3 -type d -path '**/Python/${{ env.PYTHON_VERSION }}*/x64')"
         echo "PYTHON_ROOT=$PYTHON_ROOT" | tee -a $GITHUB_ENV
         echo "::set-output name=python_root::$(echo $PYTHON_ROOT)"
 
