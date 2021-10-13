@@ -68,6 +68,9 @@ runs:
         echo "::set-output name=sofa_os::$(echo $SOFA_OS)"
         
         # TODO: find a better way to handle dependency versions
+        PYBIND11_INSTALL_DIR="/tmp/deps_cache_is_for_windows_only"
+        EIGEN_INSTALL_DIR="/tmp/deps_cache_is_for_windows_only"
+        BOOST_INSTALL_DIR="/tmp/deps_cache_is_for_windows_only"
         if [[ "$SOFA_OS" == "Linux" ]]; then
             PYTHON_VERSION=3.8
             PYBIND11_VERSION=2.4.3
