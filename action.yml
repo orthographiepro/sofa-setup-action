@@ -23,8 +23,11 @@ outputs:
   run_branch:
     description: "Prettified git branch of this workflow run"
     value: ${{ steps.set-env-vars.outputs.run_branch }}
+  python_root:
+    description: "Root directory of the Python installed for SOFA"
+    value: ${{ steps.set-env-vars.outputs.python_root }}
   python_version:
-    description: "Python version installed for SOFA"
+    description: "Version of the Python installed for SOFA"
     value: ${{ steps.set-env-vars.outputs.python_version }}
   pybind11_version:
     description: "Pybind11 version installed for SOFA"
@@ -46,15 +49,16 @@ runs:
       run: |
         # Set env vars
         if [ -n "${{ github.event.number }}" ]; then
-          run_branch="PR-${{ github.event.number }}"
+          RUN_BRANCH="PR-${{ github.event.number }}"
         elif [ -n "${{ github.event.pull_request.number }}" ]; then
-          run_branch="PR-${{ github.event.pull_request.number }}"
+          RUN_BRANCH="PR-${{ github.event.pull_request.number }}"
         elif [ -n "${{ github.event.issue.number }}" ]; then
-          run_branch="PR-${{ github.event.issue.number }}"
+          RUN_BRANCH="PR-${{ github.event.issue.number }}"
         else
-          run_branch="${GITHUB_REF#refs/heads/}"
+          RUN_BRANCH="${GITHUB_REF#refs/heads/}"
         fi
-        echo "::set-output name=run_branch::$(echo $run_branch)"
+        echo "RUN_BRANCH=$RUN_BRANCH" | tee -a $GITHUB_ENV
+        echo "::set-output name=run_branch::$(echo $RUN_BRANCH)"
         
         SOFA_OS="$RUNNER_OS"
         if [[ "$SOFA_OS" == "macOS" ]]; then
@@ -79,7 +83,7 @@ runs:
             
             # vsdevcmd.bat is here: 'C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/Common7/Tools/vsdevcmd.bat'
             VS_INSTALL_DIR="$(cmd //c 'vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath')"
-            VS_VSDEVCMD='C: && cd '$VS_INSTALL_DIR'\Common7\Tools && VsDevCmd.bat -host_arch=amd64 -arch=amd64 && D:'
+            VS_VSDEVCMD='cd /d '$VS_INSTALL_DIR'\Common7\Tools && VsDevCmd.bat -host_arch=amd64 -arch=amd64'
         fi
         echo "PYTHON_VERSION=$PYTHON_VERSION" | tee -a $GITHUB_ENV
         echo "PYBIND11_VERSION=$PYBIND11_VERSION" | tee -a $GITHUB_ENV
@@ -95,40 +99,55 @@ runs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Set vars PYTHON_ROOT and outputs.python_root 
+      shell: bash
+      run: |
+        PYTHON_ROOT="$(find $RUNNER_TOOL_CACHE -maxdepth 3 -type d -path '**/Python/${{ steps.sofa.outputs.python_version }}*/x64')"
+        echo "PYTHON_ROOT=$PYTHON_ROOT" | tee -a $GITHUB_ENV
+        echo "::set-output name=python_root::$(echo $PYTHON_ROOT)"
 
     - name: Install numpy and scipy
       shell: bash
       run: |
-        if [[ "$SOFA_OS" == "Linux" ]]; then
+        if [[ "$RUNNER_OS" == "Linux" ]]; then
           python3 -m pip install numpy scipy
-        elif [[ "$SOFA_OS" == "MacOS" ]]; then
+        elif [[ "$RUNNER_OS" == "macOS" ]]; then
           brew list | grep python | while read package; do
             brew unlink $package
           done
           python3 -m pip install numpy scipy
-        elif [[ "$SOFA_OS" == "Windows" ]]; then
+        elif [[ "$RUNNER_OS" == "Windows" ]]; then
           cmd //c 'python -m pip install numpy scipy'
         fi
       
     - name: Install build tools
       shell: bash
       run: |
-        if [[ "$SOFA_OS" == "Linux" ]]; then
+        if [[ "$RUNNER_OS" == "Linux" ]]; then
           sudo apt-get -qq install ccache ninja-build
-        elif [[ "$SOFA_OS" == "MacOS" ]]; then
+        elif [[ "$RUNNER_OS" == "macOS" ]]; then
           brew install ccache ninja
-        elif [[ "$SOFA_OS" == "Windows" ]]; then
+        elif [[ "$RUNNER_OS" == "Windows" ]]; then
           cmd //c 'choco install -y --no-progress nsis curl ninja'
         fi
-        
+    
+    - name: Boost cache files
+      uses: actions/cache@v2
+      id: boost_cache
+      with:
+        path: ${{ env.GITHUB_WORKSPACE }}/deps_cache/boost
+        key: boost_${{ env.RUN_BRANCH }}_${{ env.RUNNER_OS }}_${{ hashFiles('.github/workflows/*.yml') }}
+    
     - name: Install Boost
+      if: steps.boost_cache.outputs.cache-hit != 'true'
       shell: bash
       run: |
-        if [[ "$SOFA_OS" == "Linux" ]]; then
+        if [[ "$RUNNER_OS" == "Linux" ]]; then
           sudo apt-get -qq install libboost-dev libboost-system-dev libboost-filesystem-dev libboost-program-options-dev libboost-thread-dev
-        elif [[ "$SOFA_OS" == "MacOS" ]]; then
+        elif [[ "$RUNNER_OS" == "macOS" ]]; then
           brew install boost
-        elif [[ "$SOFA_OS" == "Windows" ]]; then
+        elif [[ "$RUNNER_OS" == "Windows" ]]; then
           BOOST_MAJOR=1
           BOOST_MINOR=69
           BOOST_PATCH=0
@@ -141,14 +160,21 @@ runs:
           echo "$BOOST_INSTALL_DIR" >> $GITHUB_PATH
         fi
         
+    - name: Eigen cache files
+      uses: actions/cache@v2
+      id: eigen_cache
+      with:
+        path: ${{ env.GITHUB_WORKSPACE }}/deps_cache/eigen
+        key: eigen_${{ env.RUN_BRANCH }}_${{ env.RUNNER_OS }}_${{ hashFiles('.github/workflows/*.yml') }}
+        
     - name: Install Eigen
       shell: bash
       run: |
-        if [[ "$SOFA_OS" == "Linux" ]]; then
+        if [[ "$RUNNER_OS" == "Linux" ]]; then
           sudo apt-get -qq install libeigen3-dev 
-        elif [[ "$SOFA_OS" == "MacOS" ]]; then
+        elif [[ "$RUNNER_OS" == "macOS" ]]; then
           brew install eigen
-        elif [[ "$SOFA_OS" == "Windows" ]]; then
+        elif [[ "$RUNNER_OS" == "Windows" ]]; then
           EIGEN_MAJOR=3
           EIGEN_MINOR=3
           EIGEN_PATCH=7
@@ -164,15 +190,22 @@ runs:
           echo "$EIGEN_INSTALL_DIR" >> $GITHUB_PATH
         fi
         
+    - name: pybind11 cache files
+      uses: actions/cache@v2
+      id: pybind11_cache
+      with:
+        path: ${{ env.GITHUB_WORKSPACE }}/deps_cache/pybind11
+        key: pybind11_${{ env.RUN_BRANCH }}_${{ env.RUNNER_OS }}_${{ hashFiles('.github/workflows/*.yml') }}
+        
     - name: Install pybind11
       shell: bash
       run: |
         # Build and install pybind11
-        if [[ "$SOFA_OS" == "Windows" ]]; then
+        if [[ "$RUNNER_OS" == "Windows" ]]; then
           PYBIND11_INSTALL_DIR="C:/pybind11"
           git clone -b v$PYBIND11_VERSION --depth 1 https://github.com/pybind/pybind11.git C:/pybind11_tmp
           cmd //c "${{ env.VS_VSDEVCMD }} && \
-            cd C:/pybind11_tmp && C: && \
+            cd /d C:/pybind11_tmp && \
             cmake \
               -GNinja \
               -DCMAKE_BUILD_TYPE=Release \
@@ -194,6 +227,13 @@ runs:
             .
           sudo ninja install
         fi
+        
+    - name: SOFA cache files
+      uses: actions/cache@v2
+      id: sofa_cache
+      with:
+        path: ${{ env.GITHUB_WORKSPACE }}/deps_cache/sofa
+        key: sofa_${{ env.RUN_BRANCH }}_${{ env.RUNNER_OS }}_${{ hashFiles('.github/workflows/*.yml') }}
 
     - name: Download and install the latest SOFA ${{ inputs.sofa_version }} binaries
       shell: bash
@@ -205,7 +245,7 @@ runs:
           https://ci.inria.fr/sofa-ci-dev/job/nightly-generate-binaries/CI_BRANCH=${{ inputs.sofa_version }},CI_SCOPE=minimal/lastSuccessfulBuild/artifact/${SOFA_OS}/*zip*/${SOFA_OS}.zip
         unzip -qq /tmp/sofa_zip/${SOFA_OS}.zip -d /tmp/sofa_zip
         unzip -qq /tmp/sofa_zip/${SOFA_OS}/SOFA_*.zip -d /tmp/sofa_binaries
-        if [[ "$SOFA_OS" == "Windows" ]]; then
+        if [[ "$RUNNER_OS" == "Windows" ]]; then
           mkdir -p "${{ inputs.sofa_root }}"
           mv /tmp/sofa_binaries/SOFA_*/* "${{ inputs.sofa_root }}"
           ls -la "${{ inputs.sofa_root }}"
