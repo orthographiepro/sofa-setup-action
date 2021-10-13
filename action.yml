@@ -71,6 +71,7 @@ runs:
         PYBIND11_INSTALL_DIR="/tmp/deps_cache_is_for_windows_only"
         EIGEN_INSTALL_DIR="/tmp/deps_cache_is_for_windows_only"
         BOOST_INSTALL_DIR="/tmp/deps_cache_is_for_windows_only"
+        SUDO='sudo'
         if [[ "$SOFA_OS" == "Linux" ]]; then
             PYTHON_VERSION=3.8
             PYBIND11_VERSION=2.4.3
@@ -78,6 +79,7 @@ runs:
             PYTHON_VERSION=3.9
             PYBIND11_VERSION=2.4.3
         elif [[ "$SOFA_OS" == "Windows" ]]; then
+            SUDO=''
             PYTHON_VERSION=3.7
             PYBIND11_VERSION=2.4.3
             PYBIND11_INSTALL_DIR="C:/pybind11"
@@ -90,6 +92,8 @@ runs:
             VS_INSTALL_DIR="$(cmd //c 'vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath')"
             VS_VSDEVCMD='cd /d '$VS_INSTALL_DIR'\Common7\Tools && VsDevCmd.bat -host_arch=amd64 -arch=amd64'
         fi
+        
+        echo "SUDO=$SUDO" | tee -a $GITHUB_ENV
         
         echo "PYTHON_VERSION=$PYTHON_VERSION" | tee -a $GITHUB_ENV
         
@@ -261,22 +265,13 @@ runs:
           curl --output /tmp/sofa_zip/${SOFA_OS}.zip -L \
             https://ci.inria.fr/sofa-ci-dev/job/nightly-generate-binaries/CI_BRANCH=${{ inputs.sofa_version }},CI_SCOPE=minimal/lastSuccessfulBuild/artifact/${SOFA_OS}/*zip*/${SOFA_OS}.zip
           unzip -qq /tmp/sofa_zip/${SOFA_OS}.zip -d /tmp/sofa_zip
-          unzip -qq /tmp/sofa_zip/${SOFA_OS}/SOFA_*.zip -d /tmp/sofa_binaries
+          unzip -qq /tmp/sofa_zip/${SOFA_OS}/SOFA_*.zip -d /tmp/sofa_binaries          
+          $SUDO mkdir -p "${{ inputs.sofa_root }}"
+          $SUDO mv /tmp/sofa_binaries/SOFA_*/* "${{ inputs.sofa_root }}"
         fi
-        if [[ "$RUNNER_OS" == "Windows" ]]; then
-          if [ ! -e "${{ inputs.sofa_root }}"/* ]; then
-            mkdir -p "${{ inputs.sofa_root }}"
-            mv /tmp/sofa_binaries/SOFA_*/* "${{ inputs.sofa_root }}"
-          fi
-          ls -la "${{ inputs.sofa_root }}"
-          echo '${{ inputs.sofa_root }}' >> $GITHUB_PATH
-          echo '${{ inputs.sofa_root }}\bin' >> $GITHUB_PATH
-        else
-          if [ ! -e "${{ inputs.sofa_root }}"/* ]; then
-            sudo mv /tmp/sofa_binaries/SOFA_* "${{ inputs.sofa_root }}"
-            sudo ls -la "${{ inputs.sofa_root }}"
-          fi
-          echo '${{ inputs.sofa_root }}' >> $GITHUB_PATH
-        fi
+        echo '${{ inputs.sofa_root }}' >> $GITHUB_PATH
+        echo '${{ inputs.sofa_root }}\bin' >> $GITHUB_PATH
         rm -rf /tmp/sofa_*
-        echo "Done."
+        echo "SOFA downloaded and installed in ${{ inputs.sofa_root }}"
+        echo '----- ls -la "${{ inputs.sofa_root }}" -----'
+        ls -la "${{ inputs.sofa_root }}"
