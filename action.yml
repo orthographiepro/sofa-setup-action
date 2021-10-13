@@ -209,10 +209,12 @@ runs:
           mkdir -p "${{ inputs.sofa_root }}"
           mv /tmp/sofa_binaries/SOFA_*/* "${{ inputs.sofa_root }}"
           ls -la "${{ inputs.sofa_root }}"
+          echo '${{ inputs.sofa_root }}' >> $GITHUB_PATH
+          echo '${{ inputs.sofa_root }}\bin' >> $GITHUB_PATH
         else
           sudo mv /tmp/sofa_binaries/SOFA_* "${{ inputs.sofa_root }}"
           sudo ls -la "${{ inputs.sofa_root }}"
+          echo '${{ inputs.sofa_root }}' >> $GITHUB_PATH
         fi
         rm -rf /tmp/sofa_*
-        echo "${{ inputs.sofa_root }}" >> $GITHUB_PATH
         echo "Done."
