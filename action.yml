@@ -133,7 +133,7 @@ runs:
           BOOST_MINOR=69
           BOOST_PATCH=0
           BOOST_INSTALL_DIR="C:/boost"
-          curl -L "https://boost.teeks99.com/bin/${BOOST_MAJOR}.${BOOST_MINOR}.${BOOST_PATCH}/boost_${BOOST_MAJOR}_${BOOST_MINOR}_${BOOST_PATCH}-msvc-14.1-64.exe" --output "C:/boost_tmp.exe"
+          curl -L "https://downloads.sourceforge.net/project/boost/boost-binaries/${BOOST_MAJOR}.${BOOST_MINOR}.${BOOST_PATCH}/boost_${BOOST_MAJOR}_${BOOST_MINOR}_${BOOST_PATCH}-msvc-14.1-64.exe" --output "C:/boost_tmp.exe"
           cmd //c "C:/boost_tmp.exe /NORESTART /VERYSILENT /DIR=$BOOST_INSTALL_DIR"
           rm -rf C:/boost_tmp*
           echo "BOOST_ROOT=$BOOST_INSTALL_DIR" | tee -a $GITHUB_ENV
