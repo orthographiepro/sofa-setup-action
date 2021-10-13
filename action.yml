@@ -77,19 +77,31 @@ runs:
         elif [[ "$SOFA_OS" == "Windows" ]]; then
             PYTHON_VERSION=3.7
             PYBIND11_VERSION=2.4.3
+            PYBIND11_INSTALL_DIR="C:/pybind11"
             EIGEN_VERSION=3.3.7
+            EIGEN_INSTALL_DIR="C:/eigen"
             BOOST_VERSION=1.69.0
+            BOOST_INSTALL_DIR="C:/boost"
             
             # vsdevcmd.bat is here: 'C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/Common7/Tools/vsdevcmd.bat'
             VS_INSTALL_DIR="$(cmd //c 'vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath')"
             VS_VSDEVCMD='cd /d '$VS_INSTALL_DIR'\Common7\Tools && VsDevCmd.bat -host_arch=amd64 -arch=amd64'
         fi
+        
         echo "PYTHON_VERSION=$PYTHON_VERSION" | tee -a $GITHUB_ENV
+        
         echo "PYBIND11_VERSION=$PYBIND11_VERSION" | tee -a $GITHUB_ENV
+        echo "PYBIND11_INSTALL_DIR=$PYBIND11_INSTALL_DIR" | tee -a $GITHUB_ENV
+        
         echo "EIGEN_VERSION=$EIGEN_VERSION" | tee -a $GITHUB_ENV
+        echo "EIGEN_INSTALL_DIR=$EIGEN_INSTALL_DIR" | tee -a $GITHUB_ENV
+        
         echo "BOOST_VERSION=$BOOST_VERSION" | tee -a $GITHUB_ENV
+        echo "BOOST_INSTALL_DIR=$BOOST_INSTALL_DIR" | tee -a $GITHUB_ENV
+        
         echo "VS_INSTALL_DIR=$VS_INSTALL_DIR" | tee -a $GITHUB_ENV
         echo "VS_VSDEVCMD=$VS_VSDEVCMD" | tee -a $GITHUB_ENV
+        
         echo "::set-output name=python_version::$(echo $PYTHON_VERSION)"
         echo "::set-output name=pybind11_version::$(echo $PYBIND11_VERSION)"
         echo "::set-output name=vs_install_dir::$(echo $VS_INSTALL_DIR)"
@@ -137,7 +149,7 @@ runs:
       uses: actions/cache@v2
       id: boost_cache
       with:
-        path: ${{ env.GITHUB_WORKSPACE }}/deps_cache/boost
+        path: ${{ env.BOOST_INSTALL_DIR }}
         key: boost_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.BOOST_VERSION }}
     
     - name: Install Boost
@@ -148,16 +160,14 @@ runs:
         elif [[ "$RUNNER_OS" == "macOS" ]]; then
           brew install boost
         elif [[ "$RUNNER_OS" == "Windows" ]]; then
-          major="$(echo $BOOST_VERSION | cut -d. -f1)"
-          minor="$(echo $BOOST_VERSION | cut -d. -f2)"
-          patch="$(echo $BOOST_VERSION | cut -d. -f3)"
-          BOOST_INSTALL_DIR="C:/boost"
-          if [ -e "$BOOST_INSTALL_DIR" ]; then
-            exit 0
+          if [ ! -e "$BOOST_INSTALL_DIR" ]; then
+            major="$(echo $BOOST_VERSION | cut -d. -f1)"
+            minor="$(echo $BOOST_VERSION | cut -d. -f2)"
+            patch="$(echo $BOOST_VERSION | cut -d. -f3)"
+            curl -L "https://downloads.sourceforge.net/project/boost/boost-binaries/${BOOST_VERSION}/boost_${major}_${minor}_${patch}-msvc-14.1-64.exe" --output "C:/boost_tmp.exe"
+            cmd //c "C:/boost_tmp.exe /NORESTART /VERYSILENT /DIR=$BOOST_INSTALL_DIR"
+            rm -rf C:/boost_tmp*
           fi
-          curl -L "https://downloads.sourceforge.net/project/boost/boost-binaries/${BOOST_VERSION}/boost_${major}_${minor}_${patch}-msvc-14.1-64.exe" --output "C:/boost_tmp.exe"
-          cmd //c "C:/boost_tmp.exe /NORESTART /VERYSILENT /DIR=$BOOST_INSTALL_DIR"
-          rm -rf C:/boost_tmp*
           echo "BOOST_ROOT=$BOOST_INSTALL_DIR" | tee -a $GITHUB_ENV
           echo "Boost_ROOT=$BOOST_INSTALL_DIR" | tee -a $GITHUB_ENV
           echo "$BOOST_INSTALL_DIR" >> $GITHUB_PATH
@@ -167,7 +177,7 @@ runs:
       uses: actions/cache@v2
       id: eigen_cache
       with:
-        path: ${{ env.GITHUB_WORKSPACE }}/deps_cache/eigen
+        path: ${{ env.EIGEN_INSTALL_DIR }}
         key: eigen_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.EIGEN_VERSION }}
         
     - name: Install Eigen
@@ -178,16 +188,14 @@ runs:
         elif [[ "$RUNNER_OS" == "macOS" ]]; then
           brew install eigen
         elif [[ "$RUNNER_OS" == "Windows" ]]; then
-          EIGEN_INSTALL_DIR="C:/eigen"
-          if [ -e "$EIGEN_INSTALL_DIR" ]; then
-            exit 0
+          if [ ! -e "$EIGEN_INSTALL_DIR" ]; then
+            mkdir -p "$EIGEN_INSTALL_DIR"
+            mkdir -p "C:/eigen_tmp"
+            curl -L "https://gitlab.com/libeigen/eigen/-/archive/${EIGEN_VERSION}/eigen-${EIGEN_VERSION}.zip" --output "C:/eigen_tmp.zip"
+            unzip -qq "C:/eigen_tmp.zip" -d "C:/eigen_tmp"
+            mv C:/eigen_tmp/eigen-*/* $EIGEN_INSTALL_DIR
+            rm -rf C:/eigen_tmp*
           fi
-          mkdir -p "$EIGEN_INSTALL_DIR"
-          mkdir -p "C:/eigen_tmp"
-          curl -L "https://gitlab.com/libeigen/eigen/-/archive/${EIGEN_VERSION}/eigen-${EIGEN_VERSION}.zip" --output "C:/eigen_tmp.zip"
-          unzip -qq "C:/eigen_tmp.zip" -d "C:/eigen_tmp"
-          mv C:/eigen_tmp/eigen-*/* $EIGEN_INSTALL_DIR
-          rm -rf C:/eigen_tmp*
           echo "EIGEN3_ROOT=$EIGEN_INSTALL_DIR" | tee -a $GITHUB_ENV
           echo "Eigen3_ROOT=$EIGEN_INSTALL_DIR" | tee -a $GITHUB_ENV
           echo "$EIGEN_INSTALL_DIR" >> $GITHUB_PATH
@@ -197,7 +205,7 @@ runs:
       uses: actions/cache@v2
       id: pybind11_cache
       with:
-        path: ${{ env.GITHUB_WORKSPACE }}/deps_cache/pybind11
+        path: ${{ env.PYBIND11_INSTALL_DIR }}
         key: pybind11_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.PYBIND11_VERSION }}
         
     - name: Install pybind11
@@ -205,21 +213,19 @@ runs:
       run: |
         # Build and install pybind11
         if [[ "$RUNNER_OS" == "Windows" ]]; then
-          PYBIND11_INSTALL_DIR="C:/pybind11"
-          if [ -e "$PYBIND11_INSTALL_DIR" ]; then
-            exit 0
-          fi
-          git clone -b v$PYBIND11_VERSION --depth 1 https://github.com/pybind/pybind11.git C:/pybind11_tmp
-          cmd //c "${{ env.VS_VSDEVCMD }} && \
-            cd /d C:/pybind11_tmp && \
-            cmake \
-              -GNinja \
-              -DCMAKE_BUILD_TYPE=Release \
-              -DPYBIND11_TEST=OFF \
-              -DCMAKE_INSTALL_PREFIX=$PYBIND11_INSTALL_DIR \
-              . && \
-              ninja install"
-          rm -rf C:/pybind11_tmp*
+          if [ ! -e "$PYBIND11_INSTALL_DIR" ]; then
+            git clone -b v$PYBIND11_VERSION --depth 1 https://github.com/pybind/pybind11.git C:/pybind11_tmp
+            cmd //c "${{ env.VS_VSDEVCMD }} && \
+              cd /d C:/pybind11_tmp && \
+              cmake \
+                -GNinja \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DPYBIND11_TEST=OFF \
+                -DCMAKE_INSTALL_PREFIX=$PYBIND11_INSTALL_DIR \
+                . && \
+                ninja install"
+            rm -rf C:/pybind11_tmp*
+          fi          
           echo "pybind11_ROOT=$PYBIND11_INSTALL_DIR" | tee -a $GITHUB_ENV
           echo "$PYBIND11_INSTALL_DIR" >> $GITHUB_PATH
         else
@@ -238,28 +244,34 @@ runs:
       uses: actions/cache@v2
       id: sofa_cache
       with:
-        path: ${{ env.GITHUB_WORKSPACE }}/deps_cache/sofa
+        path: ${{ inputs.sofa_root }}
         key: sofa_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ inputs.sofa_version }}
 
     - name: Download and install the latest SOFA ${{ inputs.sofa_version }} binaries
       shell: bash
       run: |
         # Download and install the latest SOFA ${{ inputs.sofa_version }} binaries
-        mkdir -p /tmp/sofa_zip
-        mkdir -p /tmp/sofa_binaries
-        curl --output /tmp/sofa_zip/${SOFA_OS}.zip -L \
-          https://ci.inria.fr/sofa-ci-dev/job/nightly-generate-binaries/CI_BRANCH=${{ inputs.sofa_version }},CI_SCOPE=minimal/lastSuccessfulBuild/artifact/${SOFA_OS}/*zip*/${SOFA_OS}.zip
-        unzip -qq /tmp/sofa_zip/${SOFA_OS}.zip -d /tmp/sofa_zip
-        unzip -qq /tmp/sofa_zip/${SOFA_OS}/SOFA_*.zip -d /tmp/sofa_binaries
+        if [ ! -e "${{ inputs.sofa_root }}" ]; then
+          mkdir -p /tmp/sofa_zip
+          mkdir -p /tmp/sofa_binaries
+          curl --output /tmp/sofa_zip/${SOFA_OS}.zip -L \
+            https://ci.inria.fr/sofa-ci-dev/job/nightly-generate-binaries/CI_BRANCH=${{ inputs.sofa_version }},CI_SCOPE=minimal/lastSuccessfulBuild/artifact/${SOFA_OS}/*zip*/${SOFA_OS}.zip
+          unzip -qq /tmp/sofa_zip/${SOFA_OS}.zip -d /tmp/sofa_zip
+          unzip -qq /tmp/sofa_zip/${SOFA_OS}/SOFA_*.zip -d /tmp/sofa_binaries
+        fi
         if [[ "$RUNNER_OS" == "Windows" ]]; then
-          mkdir -p "${{ inputs.sofa_root }}"
-          mv /tmp/sofa_binaries/SOFA_*/* "${{ inputs.sofa_root }}"
+          if [ ! -e "${{ inputs.sofa_root }}" ]; then
+            mkdir -p "${{ inputs.sofa_root }}"
+            mv /tmp/sofa_binaries/SOFA_*/* "${{ inputs.sofa_root }}"
+          fi
           ls -la "${{ inputs.sofa_root }}"
           echo '${{ inputs.sofa_root }}' >> $GITHUB_PATH
           echo '${{ inputs.sofa_root }}\bin' >> $GITHUB_PATH
         else
-          sudo mv /tmp/sofa_binaries/SOFA_* "${{ inputs.sofa_root }}"
-          sudo ls -la "${{ inputs.sofa_root }}"
+          if [ ! -e "${{ inputs.sofa_root }}" ]; then
+            sudo mv /tmp/sofa_binaries/SOFA_* "${{ inputs.sofa_root }}"
+            sudo ls -la "${{ inputs.sofa_root }}"
+          fi
           echo '${{ inputs.sofa_root }}' >> $GITHUB_PATH
         fi
         rm -rf /tmp/sofa_*
