@@ -140,7 +140,6 @@ runs:
         key: boost_${{ env.RUN_BRANCH }}_${{ env.RUNNER_OS }}_${{ hashFiles('.github/workflows/*.yml') }}
     
     - name: Install Boost
-      if: steps.boost_cache.outputs.cache-hit != 'true'
       shell: bash
       run: |
         if [[ "$RUNNER_OS" == "Linux" ]]; then
