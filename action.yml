@@ -25,7 +25,7 @@ outputs:
     value: ${{ steps.set-env-vars.outputs.run_branch }}
   python_root:
     description: "Root directory of the Python installed for SOFA"
-    value: ${{ steps.set-env-vars.outputs.python_root }}
+    value: ${{ steps.set-python-vars.outputs.python_root }}
   python_version:
     description: "Version of the Python installed for SOFA"
     value: ${{ steps.set-env-vars.outputs.python_version }}
@@ -116,6 +116,7 @@ runs:
         python-version: ${{ env.PYTHON_VERSION }}
         
     - name: Set vars PYTHON_ROOT and outputs.python_root 
+      id: set-python-vars
       shell: bash
       run: |
         PYTHON_ROOT="$(find $RUNNER_TOOL_CACHE -maxdepth 3 -type d -path '**/Python/${{ env.PYTHON_VERSION }}*/x64')"
@@ -163,7 +164,7 @@ runs:
         elif [[ "$RUNNER_OS" == "macOS" ]]; then
           brew install boost
         elif [[ "$RUNNER_OS" == "Windows" ]]; then
-          if [ ! -e "$BOOST_INSTALL_DIR" ]; then
+          if [ ! -e "$BOOST_INSTALL_DIR"/* ]; then
             major="$(echo $BOOST_VERSION | cut -d. -f1)"
             minor="$(echo $BOOST_VERSION | cut -d. -f2)"
             patch="$(echo $BOOST_VERSION | cut -d. -f3)"
@@ -191,7 +192,7 @@ runs:
         elif [[ "$RUNNER_OS" == "macOS" ]]; then
           brew install eigen
         elif [[ "$RUNNER_OS" == "Windows" ]]; then
-          if [ ! -e "$EIGEN_INSTALL_DIR" ]; then
+          if [ ! -e "$EIGEN_INSTALL_DIR"/* ]; then
             mkdir -p "$EIGEN_INSTALL_DIR"
             mkdir -p "C:/eigen_tmp"
             curl -L "https://gitlab.com/libeigen/eigen/-/archive/${EIGEN_VERSION}/eigen-${EIGEN_VERSION}.zip" --output "C:/eigen_tmp.zip"
@@ -216,7 +217,7 @@ runs:
       run: |
         # Build and install pybind11
         if [[ "$RUNNER_OS" == "Windows" ]]; then
-          if [ ! -e "$PYBIND11_INSTALL_DIR" ]; then
+          if [ ! -e "$PYBIND11_INSTALL_DIR"/* ]; then
             git clone -b v$PYBIND11_VERSION --depth 1 https://github.com/pybind/pybind11.git C:/pybind11_tmp
             cmd //c "${{ env.VS_VSDEVCMD }} && \
               cd /d C:/pybind11_tmp && \
@@ -254,7 +255,7 @@ runs:
       shell: bash
       run: |
         # Download and install the latest SOFA ${{ inputs.sofa_version }} binaries
-        if [ ! -e "${{ inputs.sofa_root }}" ]; then
+        if [ ! -e "${{ inputs.sofa_root }}"/* ]; then
           mkdir -p /tmp/sofa_zip
           mkdir -p /tmp/sofa_binaries
           curl --output /tmp/sofa_zip/${SOFA_OS}.zip -L \
@@ -263,7 +264,7 @@ runs:
           unzip -qq /tmp/sofa_zip/${SOFA_OS}/SOFA_*.zip -d /tmp/sofa_binaries
         fi
         if [[ "$RUNNER_OS" == "Windows" ]]; then
-          if [ ! -e "${{ inputs.sofa_root }}" ]; then
+          if [ ! -e "${{ inputs.sofa_root }}"/* ]; then
             mkdir -p "${{ inputs.sofa_root }}"
             mv /tmp/sofa_binaries/SOFA_*/* "${{ inputs.sofa_root }}"
           fi
@@ -271,7 +272,7 @@ runs:
           echo '${{ inputs.sofa_root }}' >> $GITHUB_PATH
           echo '${{ inputs.sofa_root }}\bin' >> $GITHUB_PATH
         else
-          if [ ! -e "${{ inputs.sofa_root }}" ]; then
+          if [ ! -e "${{ inputs.sofa_root }}"/* ]; then
             sudo mv /tmp/sofa_binaries/SOFA_* "${{ inputs.sofa_root }}"
             sudo ls -la "${{ inputs.sofa_root }}"
           fi
