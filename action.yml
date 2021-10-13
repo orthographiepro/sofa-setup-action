@@ -21,7 +21,7 @@ outputs:
     description: "Runner OS with name adapted for SOFA download"
     value: ${{ steps.set-env-vars.outputs.sofa_os }}
   run_branch:
-    description: "Prettified git branch of this workflow run"
+    description: "Pretty git branch of this workflow run"
     value: ${{ steps.set-env-vars.outputs.run_branch }}
   python_root:
     description: "Root directory of the Python installed for SOFA"
@@ -71,15 +71,14 @@ runs:
         if [[ "$SOFA_OS" == "Linux" ]]; then
             PYTHON_VERSION=3.8
             PYBIND11_VERSION=2.4.3
-            GITHUB_WORKSPACE_PARENT="$(cd $GITHUB_WORKSPACE/.. && pwd)"
         elif [[ "$SOFA_OS" == "MacOS" ]]; then
             PYTHON_VERSION=3.9
             PYBIND11_VERSION=2.4.3
-            GITHUB_WORKSPACE_PARENT="$(cd $GITHUB_WORKSPACE/.. && pwd)"
         elif [[ "$SOFA_OS" == "Windows" ]]; then
             PYTHON_VERSION=3.7
             PYBIND11_VERSION=2.4.3
-            GITHUB_WORKSPACE_PARENT="$(cd $GITHUB_WORKSPACE/.. && pwd -W)"
+            EIGEN_VERSION=3.3.7
+            BOOST_VERSION=1.69.0
             
             # vsdevcmd.bat is here: 'C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/Common7/Tools/vsdevcmd.bat'
             VS_INSTALL_DIR="$(cmd //c 'vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath')"
@@ -87,7 +86,8 @@ runs:
         fi
         echo "PYTHON_VERSION=$PYTHON_VERSION" | tee -a $GITHUB_ENV
         echo "PYBIND11_VERSION=$PYBIND11_VERSION" | tee -a $GITHUB_ENV
-        echo "GITHUB_WORKSPACE_PARENT=$GITHUB_WORKSPACE_PARENT" | tee -a $GITHUB_ENV
+        echo "EIGEN_VERSION=$EIGEN_VERSION" | tee -a $GITHUB_ENV
+        echo "BOOST_VERSION=$BOOST_VERSION" | tee -a $GITHUB_ENV
         echo "VS_INSTALL_DIR=$VS_INSTALL_DIR" | tee -a $GITHUB_ENV
         echo "VS_VSDEVCMD=$VS_VSDEVCMD" | tee -a $GITHUB_ENV
         echo "::set-output name=python_version::$(echo $PYTHON_VERSION)"
@@ -104,6 +104,7 @@ runs:
       shell: bash
       run: |
         PYTHON_ROOT="$(find $RUNNER_TOOL_CACHE -maxdepth 3 -type d -path '**/Python/${{ env.PYTHON_VERSION }}*/x64')"
+        PYTHON_ROOT="$(cd $PYTHON_ROOT && pwd -W 2>/dev/null || pwd)"
         echo "PYTHON_ROOT=$PYTHON_ROOT" | tee -a $GITHUB_ENV
         echo "::set-output name=python_root::$(echo $PYTHON_ROOT)"
 
@@ -137,7 +138,7 @@ runs:
       id: boost_cache
       with:
         path: ${{ env.GITHUB_WORKSPACE }}/deps_cache/boost
-        key: boost_${{ env.RUN_BRANCH }}_${{ env.RUNNER_OS }}_${{ hashFiles('.github/workflows/*.yml') }}
+        key: boost_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.BOOST_VERSION }}
     
     - name: Install Boost
       shell: bash
@@ -147,11 +148,14 @@ runs:
         elif [[ "$RUNNER_OS" == "macOS" ]]; then
           brew install boost
         elif [[ "$RUNNER_OS" == "Windows" ]]; then
-          BOOST_MAJOR=1
-          BOOST_MINOR=69
-          BOOST_PATCH=0
+          major="$(echo $BOOST_VERSION | cut -d. -f1)"
+          minor="$(echo $BOOST_VERSION | cut -d. -f2)"
+          patch="$(echo $BOOST_VERSION | cut -d. -f3)"
           BOOST_INSTALL_DIR="C:/boost"
-          curl -L "https://downloads.sourceforge.net/project/boost/boost-binaries/${BOOST_MAJOR}.${BOOST_MINOR}.${BOOST_PATCH}/boost_${BOOST_MAJOR}_${BOOST_MINOR}_${BOOST_PATCH}-msvc-14.1-64.exe" --output "C:/boost_tmp.exe"
+          if [ -e "$BOOST_INSTALL_DIR" ]; then
+            exit 0
+          fi
+          curl -L "https://downloads.sourceforge.net/project/boost/boost-binaries/${BOOST_VERSION}/boost_${major}_${minor}_${patch}-msvc-14.1-64.exe" --output "C:/boost_tmp.exe"
           cmd //c "C:/boost_tmp.exe /NORESTART /VERYSILENT /DIR=$BOOST_INSTALL_DIR"
           rm -rf C:/boost_tmp*
           echo "BOOST_ROOT=$BOOST_INSTALL_DIR" | tee -a $GITHUB_ENV
@@ -164,7 +168,7 @@ runs:
       id: eigen_cache
       with:
         path: ${{ env.GITHUB_WORKSPACE }}/deps_cache/eigen
-        key: eigen_${{ env.RUN_BRANCH }}_${{ env.RUNNER_OS }}_${{ hashFiles('.github/workflows/*.yml') }}
+        key: eigen_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.EIGEN_VERSION }}
         
     - name: Install Eigen
       shell: bash
@@ -174,13 +178,13 @@ runs:
         elif [[ "$RUNNER_OS" == "macOS" ]]; then
           brew install eigen
         elif [[ "$RUNNER_OS" == "Windows" ]]; then
-          EIGEN_MAJOR=3
-          EIGEN_MINOR=3
-          EIGEN_PATCH=7
           EIGEN_INSTALL_DIR="C:/eigen"
+          if [ -e "$EIGEN_INSTALL_DIR" ]; then
+            exit 0
+          fi
           mkdir -p "$EIGEN_INSTALL_DIR"
           mkdir -p "C:/eigen_tmp"
-          curl -L "https://gitlab.com/libeigen/eigen/-/archive/${EIGEN_MAJOR}.${EIGEN_MINOR}.${EIGEN_PATCH}/eigen-${EIGEN_MAJOR}.${EIGEN_MINOR}.${EIGEN_PATCH}.zip" --output "C:/eigen_tmp.zip"
+          curl -L "https://gitlab.com/libeigen/eigen/-/archive/${EIGEN_VERSION}/eigen-${EIGEN_VERSION}.zip" --output "C:/eigen_tmp.zip"
           unzip -qq "C:/eigen_tmp.zip" -d "C:/eigen_tmp"
           mv C:/eigen_tmp/eigen-*/* $EIGEN_INSTALL_DIR
           rm -rf C:/eigen_tmp*
@@ -194,7 +198,7 @@ runs:
       id: pybind11_cache
       with:
         path: ${{ env.GITHUB_WORKSPACE }}/deps_cache/pybind11
-        key: pybind11_${{ env.RUN_BRANCH }}_${{ env.RUNNER_OS }}_${{ hashFiles('.github/workflows/*.yml') }}
+        key: pybind11_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.PYBIND11_VERSION }}
         
     - name: Install pybind11
       shell: bash
@@ -202,6 +206,9 @@ runs:
         # Build and install pybind11
         if [[ "$RUNNER_OS" == "Windows" ]]; then
           PYBIND11_INSTALL_DIR="C:/pybind11"
+          if [ -e "$PYBIND11_INSTALL_DIR" ]; then
+            exit 0
+          fi
           git clone -b v$PYBIND11_VERSION --depth 1 https://github.com/pybind/pybind11.git C:/pybind11_tmp
           cmd //c "${{ env.VS_VSDEVCMD }} && \
             cd /d C:/pybind11_tmp && \
@@ -232,7 +239,7 @@ runs:
       id: sofa_cache
       with:
         path: ${{ env.GITHUB_WORKSPACE }}/deps_cache/sofa
-        key: sofa_${{ env.RUN_BRANCH }}_${{ env.RUNNER_OS }}_${{ hashFiles('.github/workflows/*.yml') }}
+        key: sofa_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ inputs.sofa_version }}
 
     - name: Download and install the latest SOFA ${{ inputs.sofa_version }} binaries
       shell: bash
