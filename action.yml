@@ -48,15 +48,13 @@ runs:
       shell: bash
       run: |
         # Set env vars
-        echo "------------------------------"
-        ls -la "${{ github.workspace }}"
-        echo "------------------------------"
+        echo "-------- ${{ github.action_path }} --------"
         ls -la "${{ github.action_path }}"
-        echo "------------------------------"
+        echo "----- ${{ github.action_path }}/.github/workflows -----"
         ls -la "${{ github.action_path }}/.github/workflows"
         echo "------------------------------"
         mkdir -p "$GITHUB_WORKSPACE/sofa-setup-action"
-        cp "${{ github.action_path }}/*.yml" "$GITHUB_WORKSPACE/sofa-setup-action"
+        cp "${{ github.action_path }}"/*.yml "$GITHUB_WORKSPACE/sofa-setup-action"
         echo "github.action_path = ${{ github.action_path }}"
         echo "GITHUB_ACTION_PATH = $GITHUB_ACTION_PATH"
         echo "------------------------------"
