@@ -182,9 +182,9 @@ runs:
             major="$(echo $BOOST_VERSION | cut -d. -f1)"
             minor="$(echo $BOOST_VERSION | cut -d. -f2)"
             patch="$(echo $BOOST_VERSION | cut -d. -f3)"
-            curl --output "${{ env.RUNNER_TEMP }}/boost_tmp.exe" -L \
+            curl --output "${{ runner.temp }}/boost_tmp.exe" -L \
               "https://downloads.sourceforge.net/project/boost/boost-binaries/${BOOST_VERSION}/boost_${major}_${minor}_${patch}-msvc-14.1-64.exe"              
-            cmd //c "${{ env.RUNNER_TEMP }}/boost_tmp.exe /NORESTART /VERYSILENT /DIR=$BOOST_INSTALL_DIR"
+            cmd //c "${{ runner.temp }}/boost_tmp.exe /NORESTART /VERYSILENT /DIR=$BOOST_INSTALL_DIR"
           fi
           echo "BOOST_ROOT=$BOOST_INSTALL_DIR" | tee -a $GITHUB_ENV
           echo "Boost_ROOT=$BOOST_INSTALL_DIR" | tee -a $GITHUB_ENV
@@ -209,10 +209,10 @@ runs:
           if ! ls -a "$EIGEN_INSTALL_DIR"/* >/dev/null 2>&1; then
             # directory does not exist or is empty
             mkdir -p "$EIGEN_INSTALL_DIR"
-            curl --output "${{ env.RUNNER_TEMP }}/eigen_tmp.zip" -L \
+            curl --output "${{ runner.temp }}/eigen_tmp.zip" -L \
               "https://gitlab.com/libeigen/eigen/-/archive/${EIGEN_VERSION}/eigen-${EIGEN_VERSION}.zip"
-            unzip -qq "${{ env.RUNNER_TEMP }}/eigen_tmp.zip" -d "${{ env.RUNNER_TEMP }}/eigen_tmp"
-            mv ${{ env.RUNNER_TEMP }}/eigen_tmp/eigen-*/* $EIGEN_INSTALL_DIR
+            unzip -qq "${{ runner.temp }}/eigen_tmp.zip" -d "${{ runner.temp }}/eigen_tmp"
+            mv ${{ runner.temp }}/eigen_tmp/eigen-*/* $EIGEN_INSTALL_DIR
           fi
           echo "EIGEN3_ROOT=$EIGEN_INSTALL_DIR" | tee -a $GITHUB_ENV
           echo "Eigen3_ROOT=$EIGEN_INSTALL_DIR" | tee -a $GITHUB_ENV
@@ -233,9 +233,9 @@ runs:
         if [[ "$RUNNER_OS" == "Windows" ]]; then
           if ! ls -a "$PYBIND11_INSTALL_DIR"/* >/dev/null 2>&1; then
             # directory does not exist or is empty
-            git clone -b v$PYBIND11_VERSION --depth 1 https://github.com/pybind/pybind11.git ${{ env.RUNNER_TEMP }}/pybind11_tmp
+            git clone -b v$PYBIND11_VERSION --depth 1 https://github.com/pybind/pybind11.git ${{ runner.temp }}/pybind11_tmp
             cmd //c "${{ env.VS_VSDEVCMD }} && \
-              cd /d ${{ env.RUNNER_TEMP }}/pybind11_tmp && \
+              cd /d ${{ runner.temp }}/pybind11_tmp && \
               cmake \
                 -GNinja \
                 -DCMAKE_BUILD_TYPE=Release \
@@ -247,8 +247,8 @@ runs:
           echo "pybind11_ROOT=$PYBIND11_INSTALL_DIR" | tee -a $GITHUB_ENV
           echo "$PYBIND11_INSTALL_DIR" >> $GITHUB_PATH
         else
-          git clone -b v${PYBIND11_VERSION} --depth 1 https://github.com/pybind/pybind11.git ${{ env.RUNNER_TEMP }}/pybind11_tmp
-          cd ${{ env.RUNNER_TEMP }}/pybind11_tmp
+          git clone -b v${PYBIND11_VERSION} --depth 1 https://github.com/pybind/pybind11.git ${{ runner.temp }}/pybind11_tmp
+          cd ${{ runner.temp }}/pybind11_tmp
           cmake \
             -GNinja \
             -DCMAKE_BUILD_TYPE=Release \
@@ -271,13 +271,13 @@ runs:
         # Download and install the latest SOFA ${{ inputs.sofa_version }} binaries
         if ! ls -a "${{ inputs.sofa_root }}"/* >/dev/null 2>&1; then
           # directory does not exist or is empty
-          mkdir -p "${{ env.RUNNER_TEMP }}/sofa_tmp/zip" "${{ env.RUNNER_TEMP }}/sofa_tmp/binaries"
-          curl --output "${{ env.RUNNER_TEMP }}/sofa_tmp/${SOFA_OS}.zip" -L \
+          mkdir -p "${{ runner.temp }}/sofa_tmp/zip" "${{ runner.temp }}/sofa_tmp/binaries"
+          curl --output "${{ runner.temp }}/sofa_tmp/${SOFA_OS}.zip" -L \
             https://ci.inria.fr/sofa-ci-dev/job/nightly-generate-binaries/CI_BRANCH=${{ inputs.sofa_version }},CI_SCOPE=minimal/lastSuccessfulBuild/artifact/${SOFA_OS}/*zip*/${SOFA_OS}.zip
-          unzip -qq ${{ env.RUNNER_TEMP }}/sofa_tmp/${SOFA_OS}.zip -d ${{ env.RUNNER_TEMP }}/sofa_tmp/zip
-          unzip -qq ${{ env.RUNNER_TEMP }}/sofa_tmp/zip/${SOFA_OS}/SOFA_*.zip -d ${{ env.RUNNER_TEMP }}/sofa_tmp/binaries          
+          unzip -qq ${{ runner.temp }}/sofa_tmp/${SOFA_OS}.zip -d ${{ runner.temp }}/sofa_tmp/zip
+          unzip -qq ${{ runner.temp }}/sofa_tmp/zip/${SOFA_OS}/SOFA_*.zip -d ${{ runner.temp }}/sofa_tmp/binaries          
           $SUDO mkdir -p "${{ inputs.sofa_root }}"
-          $SUDO mv ${{ env.RUNNER_TEMP }}/sofa_tmp/binaries/SOFA_*/* "${{ inputs.sofa_root }}"
+          $SUDO mv ${{ runner.temp }}/sofa_tmp/binaries/SOFA_*/* "${{ inputs.sofa_root }}"
         fi
         echo '${{ inputs.sofa_root }}' >> $GITHUB_PATH
         echo '${{ inputs.sofa_root }}\bin' >> $GITHUB_PATH
