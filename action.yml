@@ -55,8 +55,13 @@ runs:
         echo "------------------------------"
         ls -la "${{ github.action_path }}/.github/workflows"
         echo "------------------------------"
-        ACTION_PATH="${{ github.action_path }}/*.yml"
-        echo "ACTION_PATH=$ACTION_PATH" | tee -a $GITHUB_ENV
+        mkdir -p "$GITHUB_WORKSPACE/sofa-setup-action"
+        cp "${{ github.action_path }}/*.yml" "$GITHUB_WORKSPACE/sofa-setup-action"
+        echo "github.action_path = ${{ github.action_path }}"
+        echo "GITHUB_ACTION_PATH = $GITHUB_ACTION_PATH"
+        echo "------------------------------"
+        ls -la "$GITHUB_WORKSPACE/sofa-setup-action"
+        echo "------------------------------"
         
         if [ -n "${{ github.event.number }}" ]; then
           RUN_BRANCH="PR-${{ github.event.number }}"
@@ -137,16 +142,6 @@ runs:
       id: set-python-vars
       shell: bash
       run: |
-        echo "----------------------------"
-        echo "env.GITHUB_ACTION_PATH = ${{env.GITHUB_ACTION_PATH}}"
-        HASH_FORMAT_0="${{ hashFiles(format('{0}/*.yml', env.GITHUB_ACTION_PATH)) }}"
-        HASH_FORMAT_1="${{ hashFiles(format('{0}/*.yml', github.action_path)) }}"        
-        HASH_FORMAT_2="${{ hashFiles(format('{0}', env.ACTION_PATH)) }}"
-        HASH_FORMAT_3="${{ hashFiles(env.ACTION_PATH) }}"
-        echo "HASH_FORMAT_1 = $HASH_FORMAT_1"
-        echo "HASH_FORMAT_2 = $HASH_FORMAT_2"
-        echo "HASH_FORMAT_3 = $HASH_FORMAT_3"
-        echo "----------------------------"
         PYTHONIOENCODING="UTF-8"
         PYTHONUSERBASE="/tmp/pythonuserbase"
         if [[ "$SOFA_OS" == "Windows" ]]; then
@@ -191,7 +186,7 @@ runs:
       id: boost_cache
       with:
         path: ${{ env.BOOST_INSTALL_DIR }}
-        key: boost_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.BOOST_VERSION }}_${{ hashFiles(format('{0}', env.ACTION_PATH)) }}
+        key: boost_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.BOOST_VERSION }}_${{ hashFiles('sofa-setup-action/*.yml') }}
     
     - name: Install Boost
       shell: bash
@@ -220,7 +215,7 @@ runs:
       id: eigen_cache
       with:
         path: ${{ env.EIGEN_INSTALL_DIR }}
-        key: eigen_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.EIGEN_VERSION }}_${{ hashFiles(env.ACTION_PATH) }}
+        key: eigen_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.EIGEN_VERSION }}_${{ hashFiles('sofa-setup-action/*.yml') }}
 
     - name: Install Eigen
       shell: bash
@@ -236,7 +231,7 @@ runs:
             curl --output "${{ runner.temp }}/eigen_tmp.zip" -L \
               "https://gitlab.com/libeigen/eigen/-/archive/${EIGEN_VERSION}/eigen-${EIGEN_VERSION}.zip"
             unzip -qq "${{ runner.temp }}/eigen_tmp.zip" -d "${{ runner.temp }}/eigen_tmp"
-            mv ${{ runner.temp }}/eigen_tmp/eigen-*/* $EIGEN_INSTALL_DIR
+            mv "${{ runner.temp }}"/eigen_tmp/eigen-*/* $EIGEN_INSTALL_DIR
           fi
           echo "EIGEN3_ROOT=$EIGEN_INSTALL_DIR" | tee -a $GITHUB_ENV
           echo "Eigen3_ROOT=$EIGEN_INSTALL_DIR" | tee -a $GITHUB_ENV
@@ -248,7 +243,7 @@ runs:
       id: pybind11_cache
       with:
         path: ${{ env.PYBIND11_INSTALL_DIR }}
-        key: pybind11_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.PYBIND11_VERSION }}_${{ hashFiles(env.ACTION_PATH) }}
+        key: pybind11_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.PYBIND11_VERSION }}_${{ hashFiles('sofa-setup-action/*.yml') }}
 
     - name: Install pybind11
       shell: bash
@@ -257,7 +252,7 @@ runs:
         if [[ "$RUNNER_OS" == "Windows" ]]; then
           if ! ls -a "$PYBIND11_INSTALL_DIR"/* >/dev/null 2>&1; then
             # directory does not exist or is empty
-            git clone -b v$PYBIND11_VERSION --depth 1 https://github.com/pybind/pybind11.git ${{ runner.temp }}/pybind11_tmp
+            git clone -b v$PYBIND11_VERSION --depth 1 https://github.com/pybind/pybind11.git "${{ runner.temp }}/pybind11_tmp"
             cmd //c "${{ env.VS_VSDEVCMD }} && \
               cd /d ${{ runner.temp }}/pybind11_tmp && \
               cmake \
@@ -271,8 +266,8 @@ runs:
           echo "pybind11_ROOT=$PYBIND11_INSTALL_DIR" | tee -a $GITHUB_ENV
           echo "$PYBIND11_INSTALL_DIR" >> $GITHUB_PATH
         else
-          git clone -b v${PYBIND11_VERSION} --depth 1 https://github.com/pybind/pybind11.git ${{ runner.temp }}/pybind11_tmp
-          cd ${{ runner.temp }}/pybind11_tmp
+          git clone -b v${PYBIND11_VERSION} --depth 1 https://github.com/pybind/pybind11.git "${{ runner.temp }}/pybind11_tmp"
+          cd "${{ runner.temp }}/pybind11_tmp"
           cmake \
             -GNinja \
             -DCMAKE_BUILD_TYPE=Release \
@@ -287,7 +282,7 @@ runs:
       id: sofa_cache
       with:
         path: ${{ inputs.sofa_root }}
-        key: sofa_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ inputs.sofa_version }}_${{ hashFiles(env.ACTION_PATH) }}
+        key: sofa_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ inputs.sofa_version }}_${{ hashFiles(format('{0}{1}', github.action_path, '/action.yml')) }}
 
     - name: Download and install the latest SOFA ${{ inputs.sofa_version }} binaries
       shell: bash
@@ -298,10 +293,10 @@ runs:
           mkdir -p "${{ runner.temp }}/sofa_tmp/zip" "${{ runner.temp }}/sofa_tmp/binaries"
           curl --output "${{ runner.temp }}/sofa_tmp/${SOFA_OS}.zip" -L \
             https://ci.inria.fr/sofa-ci-dev/job/nightly-generate-binaries/CI_BRANCH=${{ inputs.sofa_version }},CI_SCOPE=minimal/lastSuccessfulBuild/artifact/${SOFA_OS}/*zip*/${SOFA_OS}.zip
-          unzip -qq ${{ runner.temp }}/sofa_tmp/${SOFA_OS}.zip -d ${{ runner.temp }}/sofa_tmp/zip
-          unzip -qq ${{ runner.temp }}/sofa_tmp/zip/${SOFA_OS}/SOFA_*.zip -d ${{ runner.temp }}/sofa_tmp/binaries          
+          unzip -qq "${{ runner.temp }}"/sofa_tmp/${SOFA_OS}.zip -d "${{ runner.temp }}/sofa_tmp/zip"
+          unzip -qq "${{ runner.temp }}"/sofa_tmp/zip/${SOFA_OS}/SOFA_*.zip -d "${{ runner.temp }}/sofa_tmp/binaries"   
           $SUDO mkdir -p "${{ inputs.sofa_root }}"
-          $SUDO mv ${{ runner.temp }}/sofa_tmp/binaries/SOFA_*/* "${{ inputs.sofa_root }}"
+          $SUDO mv "${{ runner.temp }}"/sofa_tmp/binaries/SOFA_*/* "${{ inputs.sofa_root }}"
         fi
         echo '${{ inputs.sofa_root }}' >> $GITHUB_PATH
         echo '${{ inputs.sofa_root }}\bin' >> $GITHUB_PATH
