@@ -259,3 +259,5 @@ runs:
         echo "SOFA downloaded and installed in ${{ inputs.sofa_root }}"
         echo '----- ls -la "${{ inputs.sofa_root }}" -----'
         ls -la "${{ inputs.sofa_root }}"
+        echo '--------------------------------------------'
+        cat "${{ inputs.sofa_root }}"/git-info.txt
