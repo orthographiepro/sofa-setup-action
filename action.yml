@@ -177,7 +177,8 @@ runs:
         elif [[ "$RUNNER_OS" == "macOS" ]]; then
           brew install boost
         elif [[ "$RUNNER_OS" == "Windows" ]]; then
-          if [ ! -e "$BOOST_INSTALL_DIR"/* ]; then
+          if ! ls -a "$BOOST_INSTALL_DIR"/* >/dev/null 2>&1; then
+            # directory does not exist or is empty
             major="$(echo $BOOST_VERSION | cut -d. -f1)"
             minor="$(echo $BOOST_VERSION | cut -d. -f2)"
             patch="$(echo $BOOST_VERSION | cut -d. -f3)"
@@ -205,7 +206,8 @@ runs:
         elif [[ "$RUNNER_OS" == "macOS" ]]; then
           brew install eigen
         elif [[ "$RUNNER_OS" == "Windows" ]]; then
-          if [ ! -e "$EIGEN_INSTALL_DIR"/* ]; then
+          if ! ls -a "$EIGEN_INSTALL_DIR"/* >/dev/null 2>&1; then
+            # directory does not exist or is empty
             mkdir -p "$EIGEN_INSTALL_DIR"
             mkdir -p "C:/eigen_tmp"
             curl -L "https://gitlab.com/libeigen/eigen/-/archive/${EIGEN_VERSION}/eigen-${EIGEN_VERSION}.zip" --output "C:/eigen_tmp.zip"
@@ -230,7 +232,8 @@ runs:
       run: |
         # Build and install pybind11
         if [[ "$RUNNER_OS" == "Windows" ]]; then
-          if [ ! -e "$PYBIND11_INSTALL_DIR"/* ]; then
+          if ! ls -a "$PYBIND11_INSTALL_DIR"/* >/dev/null 2>&1; then
+            # directory does not exist or is empty
             git clone -b v$PYBIND11_VERSION --depth 1 https://github.com/pybind/pybind11.git C:/pybind11_tmp
             cmd //c "${{ env.VS_VSDEVCMD }} && \
               cd /d C:/pybind11_tmp && \
@@ -268,7 +271,8 @@ runs:
       shell: bash
       run: |
         # Download and install the latest SOFA ${{ inputs.sofa_version }} binaries
-        if [ ! -e ${{ inputs.sofa_root }}/* ]; then
+        if ! ls -a "${{ inputs.sofa_root }}"/* >/dev/null 2>&1; then
+          # directory does not exist or is empty
           mkdir -p /tmp/sofa_zip
           mkdir -p /tmp/sofa_binaries
           curl --output /tmp/sofa_zip/${SOFA_OS}.zip -L \
