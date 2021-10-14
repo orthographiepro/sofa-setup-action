@@ -198,7 +198,6 @@ runs:
             mv "${{ runner.temp }}"/boost_tmp/boost* "$BOOST_INSTALL_DIR"
             #curl --output "${{ runner.temp }}/boost_tmp.exe" -L \
             #  "https://downloads.sourceforge.net/project/boost/boost-binaries/${BOOST_VERSION}/boost_${major}_${minor}_${patch}-msvc-14.1-64.exe"
-                https://sourceforge.net/projects/boost/files/boost/1.69.0/boost_1_69_0.7z
             #cmd //c "${{ runner.temp }}/boost_tmp.exe /NORESTART /VERYSILENT /DIR=$BOOST_INSTALL_DIR"
           fi
           echo "BOOST_ROOT=$BOOST_INSTALL_DIR" | tee -a $GITHUB_ENV
