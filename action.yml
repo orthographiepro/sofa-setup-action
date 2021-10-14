@@ -51,8 +51,10 @@ runs:
         echo "------------------------------"
         ls -la "${{ github.action_path }}"
         echo "------------------------------"
-        ls -la "${{ github.action_path }}/.github"
+        ls -la "${{ github.action_path }}/.github/workflows"
         echo "------------------------------"
+        ACTION_PATH="${{ github.action_path }}/*.yml"
+        echo "ACTION_PATH=$ACTION_PATH" | tee -a $GITHUB_ENV
         
         if [ -n "${{ github.event.number }}" ]; then
           RUN_BRANCH="PR-${{ github.event.number }}"
@@ -81,9 +83,13 @@ runs:
         if [[ "$SOFA_OS" == "Linux" ]]; then
             PYTHON_VERSION=3.8
             PYBIND11_VERSION=2.4.3
+            EIGEN_VERSION="apt-latest"
+            BOOST_VERSION="apt-latest"
         elif [[ "$SOFA_OS" == "MacOS" ]]; then
             PYTHON_VERSION=3.9
             PYBIND11_VERSION=2.4.3
+            EIGEN_VERSION="brew-latest"
+            BOOST_VERSION="brew-latest"
         elif [[ "$SOFA_OS" == "Windows" ]]; then
             SUDO=''
             PYTHON_VERSION=3.7
@@ -173,7 +179,7 @@ runs:
       id: boost_cache
       with:
         path: ${{ env.BOOST_INSTALL_DIR }}
-        key: boost_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.BOOST_VERSION }}_${{ hashFiles( format('{0}/{1}', github.action_path, '*.yml') ) }}
+        key: boost_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.BOOST_VERSION }}_${{ hashFiles( format('{0}/*.yml', github.action_path) ) }}
     
     - name: Install Boost
       shell: bash
@@ -202,7 +208,7 @@ runs:
       id: eigen_cache
       with:
         path: ${{ env.EIGEN_INSTALL_DIR }}
-        key: eigen_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.EIGEN_VERSION }}_${{ hashFiles( format('{0}/{1}', github.action_path, '*.yml') ) }}
+        key: eigen_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.EIGEN_VERSION }}_${{ hashFiles( format('{0}/*.yml', github.action_path) ) }}
     - name: Install Eigen
       shell: bash
       run: |
@@ -229,7 +235,7 @@ runs:
       id: pybind11_cache
       with:
         path: ${{ env.PYBIND11_INSTALL_DIR }}
-        key: pybind11_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.PYBIND11_VERSION }}_${{ hashFiles( format('{0}/{1}', github.action_path, '*.yml') ) }}
+        key: pybind11_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.PYBIND11_VERSION }}_${{ hashFiles( format('{0}/*.yml', github.action_path) ) }}
     - name: Install pybind11
       shell: bash
       run: |
