@@ -167,7 +167,7 @@ runs:
       id: boost_cache
       with:
         path: ${{ env.BOOST_INSTALL_DIR }}
-        key: boost_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.BOOST_VERSION }}
+        key: boost_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.BOOST_VERSION }}_${{ hashFiles('.github/workflows/*.yml') }}_${{ hashFiles('src/.github/workflows/*.yml') }}
     
     - name: Install Boost
       shell: bash
@@ -182,9 +182,9 @@ runs:
             major="$(echo $BOOST_VERSION | cut -d. -f1)"
             minor="$(echo $BOOST_VERSION | cut -d. -f2)"
             patch="$(echo $BOOST_VERSION | cut -d. -f3)"
-            curl -L "https://downloads.sourceforge.net/project/boost/boost-binaries/${BOOST_VERSION}/boost_${major}_${minor}_${patch}-msvc-14.1-64.exe" --output "C:/boost_tmp.exe"
-            cmd //c "C:/boost_tmp.exe /NORESTART /VERYSILENT /DIR=$BOOST_INSTALL_DIR"
-            rm -rf C:/boost_tmp*
+            curl --output "${{ env.RUNNER_TEMP }}/boost_tmp.exe" -L \
+              "https://downloads.sourceforge.net/project/boost/boost-binaries/${BOOST_VERSION}/boost_${major}_${minor}_${patch}-msvc-14.1-64.exe"              
+            cmd //c "${{ env.RUNNER_TEMP }}/boost_tmp.exe /NORESTART /VERYSILENT /DIR=$BOOST_INSTALL_DIR"
           fi
           echo "BOOST_ROOT=$BOOST_INSTALL_DIR" | tee -a $GITHUB_ENV
           echo "Boost_ROOT=$BOOST_INSTALL_DIR" | tee -a $GITHUB_ENV
@@ -196,7 +196,7 @@ runs:
       id: eigen_cache
       with:
         path: ${{ env.EIGEN_INSTALL_DIR }}
-        key: eigen_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.EIGEN_VERSION }}
+        key: eigen_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.EIGEN_VERSION }}_${{ hashFiles('.github/workflows/*.yml') }}_${{ hashFiles('src/.github/workflows/*.yml') }}
         
     - name: Install Eigen
       shell: bash
@@ -209,11 +209,10 @@ runs:
           if ! ls -a "$EIGEN_INSTALL_DIR"/* >/dev/null 2>&1; then
             # directory does not exist or is empty
             mkdir -p "$EIGEN_INSTALL_DIR"
-            mkdir -p "C:/eigen_tmp"
-            curl -L "https://gitlab.com/libeigen/eigen/-/archive/${EIGEN_VERSION}/eigen-${EIGEN_VERSION}.zip" --output "C:/eigen_tmp.zip"
-            unzip -qq "C:/eigen_tmp.zip" -d "C:/eigen_tmp"
-            mv C:/eigen_tmp/eigen-*/* $EIGEN_INSTALL_DIR
-            rm -rf C:/eigen_tmp*
+            curl --output "${{ env.RUNNER_TEMP }}/eigen_tmp.zip" -L \
+              "https://gitlab.com/libeigen/eigen/-/archive/${EIGEN_VERSION}/eigen-${EIGEN_VERSION}.zip"
+            unzip -qq "${{ env.RUNNER_TEMP }}/eigen_tmp.zip" -d "${{ env.RUNNER_TEMP }}/eigen_tmp"
+            mv ${{ env.RUNNER_TEMP }}/eigen_tmp/eigen-*/* $EIGEN_INSTALL_DIR
           fi
           echo "EIGEN3_ROOT=$EIGEN_INSTALL_DIR" | tee -a $GITHUB_ENV
           echo "Eigen3_ROOT=$EIGEN_INSTALL_DIR" | tee -a $GITHUB_ENV
@@ -225,7 +224,7 @@ runs:
       id: pybind11_cache
       with:
         path: ${{ env.PYBIND11_INSTALL_DIR }}
-        key: pybind11_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.PYBIND11_VERSION }}
+        key: pybind11_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.PYBIND11_VERSION }}_${{ hashFiles('.github/workflows/*.yml') }}_${{ hashFiles('src/.github/workflows/*.yml') }}
         
     - name: Install pybind11
       shell: bash
@@ -234,9 +233,9 @@ runs:
         if [[ "$RUNNER_OS" == "Windows" ]]; then
           if ! ls -a "$PYBIND11_INSTALL_DIR"/* >/dev/null 2>&1; then
             # directory does not exist or is empty
-            git clone -b v$PYBIND11_VERSION --depth 1 https://github.com/pybind/pybind11.git C:/pybind11_tmp
+            git clone -b v$PYBIND11_VERSION --depth 1 https://github.com/pybind/pybind11.git ${{ env.RUNNER_TEMP }}/pybind11_tmp
             cmd //c "${{ env.VS_VSDEVCMD }} && \
-              cd /d C:/pybind11_tmp && \
+              cd /d ${{ env.RUNNER_TEMP }}/pybind11_tmp && \
               cmake \
                 -GNinja \
                 -DCMAKE_BUILD_TYPE=Release \
@@ -244,13 +243,12 @@ runs:
                 -DCMAKE_INSTALL_PREFIX=$PYBIND11_INSTALL_DIR \
                 . && \
                 ninja install"
-            rm -rf C:/pybind11_tmp*
           fi          
           echo "pybind11_ROOT=$PYBIND11_INSTALL_DIR" | tee -a $GITHUB_ENV
           echo "$PYBIND11_INSTALL_DIR" >> $GITHUB_PATH
         else
-          git clone -b v${PYBIND11_VERSION} --depth 1 https://github.com/pybind/pybind11.git /tmp/pybind11
-          cd /tmp/pybind11
+          git clone -b v${PYBIND11_VERSION} --depth 1 https://github.com/pybind/pybind11.git ${{ env.RUNNER_TEMP }}/pybind11_tmp
+          cd ${{ env.RUNNER_TEMP }}/pybind11_tmp
           cmake \
             -GNinja \
             -DCMAKE_BUILD_TYPE=Release \
@@ -265,7 +263,7 @@ runs:
       id: sofa_cache
       with:
         path: ${{ inputs.sofa_root }}
-        key: sofa_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ inputs.sofa_version }}
+        key: sofa_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ inputs.sofa_version }}_${{ hashFiles('.github/workflows/*.yml') }}_${{ hashFiles('src/.github/workflows/*.yml') }}
 
     - name: Download and install the latest SOFA ${{ inputs.sofa_version }} binaries
       shell: bash
@@ -273,18 +271,16 @@ runs:
         # Download and install the latest SOFA ${{ inputs.sofa_version }} binaries
         if ! ls -a "${{ inputs.sofa_root }}"/* >/dev/null 2>&1; then
           # directory does not exist or is empty
-          mkdir -p /tmp/sofa_zip
-          mkdir -p /tmp/sofa_binaries
-          curl --output /tmp/sofa_zip/${SOFA_OS}.zip -L \
+          mkdir -p "${{ env.RUNNER_TEMP }}/sofa_tmp/zip" "${{ env.RUNNER_TEMP }}/sofa_tmp/binaries"
+          curl --output "${{ env.RUNNER_TEMP }}/sofa_tmp/${SOFA_OS}.zip" -L \
             https://ci.inria.fr/sofa-ci-dev/job/nightly-generate-binaries/CI_BRANCH=${{ inputs.sofa_version }},CI_SCOPE=minimal/lastSuccessfulBuild/artifact/${SOFA_OS}/*zip*/${SOFA_OS}.zip
-          unzip -qq /tmp/sofa_zip/${SOFA_OS}.zip -d /tmp/sofa_zip
-          unzip -qq /tmp/sofa_zip/${SOFA_OS}/SOFA_*.zip -d /tmp/sofa_binaries          
+          unzip -qq ${{ env.RUNNER_TEMP }}/sofa_tmp/${SOFA_OS}.zip -d ${{ env.RUNNER_TEMP }}/sofa_tmp/zip
+          unzip -qq ${{ env.RUNNER_TEMP }}/sofa_tmp/zip/${SOFA_OS}/SOFA_*.zip -d ${{ env.RUNNER_TEMP }}/sofa_tmp/binaries          
           $SUDO mkdir -p "${{ inputs.sofa_root }}"
-          $SUDO mv /tmp/sofa_binaries/SOFA_*/* "${{ inputs.sofa_root }}"
+          $SUDO mv ${{ env.RUNNER_TEMP }}/sofa_tmp/binaries/SOFA_*/* "${{ inputs.sofa_root }}"
         fi
         echo '${{ inputs.sofa_root }}' >> $GITHUB_PATH
         echo '${{ inputs.sofa_root }}\bin' >> $GITHUB_PATH
-        rm -rf /tmp/sofa_*
         echo "SOFA downloaded and installed in ${{ inputs.sofa_root }}"
         echo '----- ls -la "${{ inputs.sofa_root }}" -----'
         ls -la "${{ inputs.sofa_root }}"
