@@ -181,7 +181,7 @@ runs:
       id: boost_cache
       with:
         path: ${{ env.BOOST_INSTALL_DIR }}
-        key: boost_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.BOOST_VERSION }}_${{ env.HASH_FORMAT }}
+        key: boost_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.BOOST_VERSION }}_${{ hashFiles(env.ACTION_PATH) }}
     
     - name: Install Boost
       shell: bash
@@ -210,7 +210,7 @@ runs:
       id: eigen_cache
       with:
         path: ${{ env.EIGEN_INSTALL_DIR }}
-        key: eigen_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.EIGEN_VERSION }}_${{ env.HASH_FORMAT }}
+        key: eigen_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.EIGEN_VERSION }}_${{ hashFiles(env.ACTION_PATH) }}
 
     - name: Install Eigen
       shell: bash
@@ -238,7 +238,7 @@ runs:
       id: pybind11_cache
       with:
         path: ${{ env.PYBIND11_INSTALL_DIR }}
-        key: pybind11_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.PYBIND11_VERSION }}_${{ env.HASH_FORMAT }}
+        key: pybind11_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.PYBIND11_VERSION }}_${{ hashFiles(env.ACTION_PATH) }}
 
     - name: Install pybind11
       shell: bash
@@ -277,7 +277,7 @@ runs:
       id: sofa_cache
       with:
         path: ${{ inputs.sofa_root }}
-        key: sofa_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ inputs.sofa_version }}_${{ env.HASH_FORMAT }}
+        key: sofa_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ inputs.sofa_version }}_${{ hashFiles(env.ACTION_PATH) }}
 
     - name: Download and install the latest SOFA ${{ inputs.sofa_version }} binaries
       shell: bash
