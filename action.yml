@@ -48,6 +48,10 @@ runs:
       shell: bash
       run: |
         # Set env vars
+        echo "------------------------------"
+        ls -la "${{ github.action_path }}"
+        echo "------------------------------"
+        
         if [ -n "${{ github.event.number }}" ]; then
           RUN_BRANCH="PR-${{ github.event.number }}"
         elif [ -n "${{ github.event.pull_request.number }}" ]; then
