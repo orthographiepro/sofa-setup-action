@@ -83,7 +83,7 @@ runs:
           PYBIND11_VERSION=2.4.3
           EIGEN_VERSION="apt-latest"
           BOOST_VERSION="apt-latest"
-        elif [[ "$RUNNER_OS" == "MacOS" ]]; then
+        elif [[ "$RUNNER_OS" == "macOS" ]]; then
           PYTHON_VERSION=3.9
           PYBIND11_VERSION=2.4.3
           EIGEN_VERSION="brew-latest"
