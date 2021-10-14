@@ -173,7 +173,7 @@ runs:
       id: boost_cache
       with:
         path: ${{ env.BOOST_INSTALL_DIR }}
-        key: boost_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.BOOST_VERSION }}_${{ hashFiles( format('{0}/{1}', github.action_path, '*.yml') }}
+        key: boost_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.BOOST_VERSION }}_${{ hashFiles( format('{0}/{1}', github.action_path, '*.yml') ) }}
     
     - name: Install Boost
       shell: bash
@@ -202,7 +202,7 @@ runs:
       id: eigen_cache
       with:
         path: ${{ env.EIGEN_INSTALL_DIR }}
-        key: eigen_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.EIGEN_VERSION }}_${{ hashFiles( format('{0}/{1}', github.action_path, '*.yml') }}
+        key: eigen_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.EIGEN_VERSION }}_${{ hashFiles( format('{0}/{1}', github.action_path, '*.yml') ) }}
     - name: Install Eigen
       shell: bash
       run: |
@@ -229,7 +229,7 @@ runs:
       id: pybind11_cache
       with:
         path: ${{ env.PYBIND11_INSTALL_DIR }}
-        key: pybind11_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.PYBIND11_VERSION }}_${{ hashFiles( format('{0}/{1}', github.action_path, '*.yml') }}
+        key: pybind11_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.PYBIND11_VERSION }}_${{ hashFiles( format('{0}/{1}', github.action_path, '*.yml') ) }}
     - name: Install pybind11
       shell: bash
       run: |
