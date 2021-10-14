@@ -123,6 +123,15 @@ runs:
       id: set-python-vars
       shell: bash
       run: |
+        PYTHONIOENCODING="UTF-8"
+        PYTHONUSERBASE="/tmp/pythonuserbase"
+        if [[ "$SOFA_OS" == "Windows" ]]; then
+          PYTHONUSERBASE="C:/pythonuserbase"
+        fi
+        mkdir -p "$PYTHONUSERBASE" && chmod -R 777 "$PYTHONUSERBASE"
+        echo "PYTHONIOENCODING=$PYTHONIOENCODING" | tee -a $GITHUB_ENV
+        echo "PYTHONUSERBASE=$PYTHONUSERBASE" | tee -a $GITHUB_ENV
+        
         PYTHON_ROOT="$(find $RUNNER_TOOL_CACHE -maxdepth 3 -type d -path '**/Python/${{ env.PYTHON_VERSION }}*/x64')"
         PYTHON_ROOT="$(cd $PYTHON_ROOT && pwd -W 2>/dev/null || pwd)"
         echo "PYTHON_ROOT=$PYTHON_ROOT" | tee -a $GITHUB_ENV
@@ -259,7 +268,7 @@ runs:
       shell: bash
       run: |
         # Download and install the latest SOFA ${{ inputs.sofa_version }} binaries
-        if [ ! -e "${{ inputs.sofa_root }}"/* ]; then
+        if [ ! -e ${{ inputs.sofa_root }}/* ]; then
           mkdir -p /tmp/sofa_zip
           mkdir -p /tmp/sofa_binaries
           curl --output /tmp/sofa_zip/${SOFA_OS}.zip -L \
