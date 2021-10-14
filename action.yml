@@ -48,18 +48,11 @@ runs:
       shell: bash
       run: |
         # Set env vars
-        echo "-------- ${{ github.action_path }} --------"
-        ls -la "${{ github.action_path }}"
-        echo "----- ${{ github.action_path }}/.github/workflows -----"
-        ls -la "${{ github.action_path }}/.github/workflows"
-        echo "------------------------------"
+        echo "------ GITHUB_WORKSPACE/sofa-setup-action ------"
         mkdir -p "$GITHUB_WORKSPACE/sofa-setup-action"
         cp "${{ github.action_path }}"/*.yml "$GITHUB_WORKSPACE/sofa-setup-action"
-        echo "github.action_path = ${{ github.action_path }}"
-        echo "GITHUB_ACTION_PATH = $GITHUB_ACTION_PATH"
-        echo "------------------------------"
         ls -la "$GITHUB_WORKSPACE/sofa-setup-action"
-        echo "------------------------------"
+        echo "------------------------------------------------"
         
         if [ -n "${{ github.event.number }}" ]; then
           RUN_BRANCH="PR-${{ github.event.number }}"
@@ -280,7 +273,7 @@ runs:
       id: sofa_cache
       with:
         path: ${{ inputs.sofa_root }}
-        key: sofa_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ inputs.sofa_version }}_${{ hashFiles(format('{0}{1}', github.action_path, '/action.yml')) }}
+        key: sofa_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ inputs.sofa_version }}_${{ hashFiles('sofa-setup-action/*.yml') }}
 
     - name: Download and install the latest SOFA ${{ inputs.sofa_version }} binaries
       shell: bash
