@@ -49,6 +49,8 @@ runs:
       run: |
         # Set env vars
         echo "------------------------------"
+        ls -la "${{ github.workspace }}"
+        echo "------------------------------"
         ls -la "${{ github.action_path }}"
         echo "------------------------------"
         ls -la "${{ github.action_path }}/.github/workflows"
