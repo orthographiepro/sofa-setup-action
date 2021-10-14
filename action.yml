@@ -49,8 +49,6 @@ runs:
       run: |
         # Set env vars
         echo "------------------------------"
-        ls -la "${{ github.workflow }}"
-        echo "------------------------------"
         ls -la "${{ github.action_path }}"
         echo "------------------------------"
         ls -la "${{ github.action_path }}/.github/workflows"
@@ -138,14 +136,14 @@ runs:
       shell: bash
       run: |
         echo "----------------------------"
-        HASH_FORMAT_1="${{ hashFiles(format('{0}/*.yml', github.action_path)) }}"
+        echo "env.GITHUB_ACTION_PATH = ${{env.GITHUB_ACTION_PATH}}"
+        HASH_FORMAT_0="${{ hashFiles(format('{0}/*.yml', env.GITHUB_ACTION_PATH)) }}"
+        HASH_FORMAT_1="${{ hashFiles(format('{0}/*.yml', github.action_path)) }}"        
         HASH_FORMAT_2="${{ hashFiles(format('{0}', env.ACTION_PATH)) }}"
         HASH_FORMAT_3="${{ hashFiles(env.ACTION_PATH) }}"
-        HASH_FORMAT_4="${{ hashFiles(github.workflow) }}"
         echo "HASH_FORMAT_1 = $HASH_FORMAT_1"
         echo "HASH_FORMAT_2 = $HASH_FORMAT_2"
         echo "HASH_FORMAT_3 = $HASH_FORMAT_3"
-        echo "HASH_FORMAT_4 = $HASH_FORMAT_4"
         echo "----------------------------"
         PYTHONIOENCODING="UTF-8"
         PYTHONUSERBASE="/tmp/pythonuserbase"
