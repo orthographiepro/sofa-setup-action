@@ -177,7 +177,7 @@ runs:
       id: boost_cache
       with:
         path: ${{ env.BOOST_INSTALL_DIR }}
-        key: boost_${{ env.RUN_BRANCH }}_${{ runner.name }}_${{ env.BOOST_VERSION }}_${{ hashFiles('sofa-setup-action/*.yml') }}
+        key: boost_${{ env.RUN_BRANCH }}_${{ runner.os }}_${{ env.BOOST_VERSION }}_${{ hashFiles('sofa-setup-action/*.yml') }}
     
     - name: Install Boost headers
       shell: bash
@@ -193,11 +193,12 @@ runs:
             minor="$(echo $BOOST_VERSION | cut -d. -f2)"
             patch="$(echo $BOOST_VERSION | cut -d. -f3)"
             curl --output "${{ runner.temp }}/boost_tmp.7z" -L \
-              "https://boostorg.jfrog.io/ui/native/main/release/${BOOST_VERSION}/source/boost_${major}_${minor}_${patch}.7z"
+              "https://downloads.sourceforge.net/project/boost/boost/${BOOST_VERSION}/boost_${major}_${minor}_${patch}.7z"
             7z x "${{ runner.temp }}/boost_tmp.7z" -o"${{ runner.temp }}/boost_tmp"
             mv "${{ runner.temp }}"/boost_tmp/boost*/* $BOOST_INSTALL_DIR
             #curl --output "${{ runner.temp }}/boost_tmp.exe" -L \
             #  "https://downloads.sourceforge.net/project/boost/boost-binaries/${BOOST_VERSION}/boost_${major}_${minor}_${patch}-msvc-14.1-64.exe"
+                https://sourceforge.net/projects/boost/files/boost/1.69.0/boost_1_69_0.7z
             #cmd //c "${{ runner.temp }}/boost_tmp.exe /NORESTART /VERYSILENT /DIR=$BOOST_INSTALL_DIR"
           fi
           echo "BOOST_ROOT=$BOOST_INSTALL_DIR" | tee -a $GITHUB_ENV
@@ -210,7 +211,7 @@ runs:
       id: eigen_cache
       with:
         path: ${{ env.EIGEN_INSTALL_DIR }}
-        key: eigen_${{ env.RUN_BRANCH }}_${{ runner.name }}_${{ env.EIGEN_VERSION }}_${{ hashFiles('sofa-setup-action/*.yml') }}
+        key: eigen_${{ env.RUN_BRANCH }}_${{ runner.os }}_${{ env.EIGEN_VERSION }}_${{ hashFiles('sofa-setup-action/*.yml') }}
 
     - name: Install Eigen
       shell: bash
@@ -238,7 +239,7 @@ runs:
       id: sofa_cache
       with:
         path: ${{ inputs.sofa_root }}
-        key: sofa_${{ env.RUN_BRANCH }}_${{ runner.name }}_${{ inputs.sofa_version }}_${{ hashFiles('sofa-setup-action/*.yml') }}
+        key: sofa_${{ env.RUN_BRANCH }}_${{ runner.os }}_${{ inputs.sofa_version }}_${{ hashFiles('sofa-setup-action/*.yml') }}
 
     - name: Download and install the latest SOFA ${{ inputs.sofa_version }} binaries
       shell: bash
