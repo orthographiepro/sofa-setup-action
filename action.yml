@@ -54,7 +54,9 @@ runs:
         ls -la "${{ github.action_path }}/.github/workflows"
         echo "------------------------------"
         ACTION_PATH="${{ github.action_path }}/*.yml"
+        HASH_FORMAT="${{ hashFiles( format('{0}/*.yml', github.action_path) ) }}"
         echo "ACTION_PATH=$ACTION_PATH" | tee -a $GITHUB_ENV
+        echo "HASH_FORMAT=$HASH_FORMAT" | tee -a $GITHUB_ENV
         
         if [ -n "${{ github.event.number }}" ]; then
           RUN_BRANCH="PR-${{ github.event.number }}"
@@ -179,7 +181,7 @@ runs:
       id: boost_cache
       with:
         path: ${{ env.BOOST_INSTALL_DIR }}
-        key: boost_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.BOOST_VERSION }}_${{ hashFiles( format('{0}/*.yml', github.action_path) ) }}
+        key: boost_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.BOOST_VERSION }}_${{ env.HASH_FORMAT }}
     
     - name: Install Boost
       shell: bash
@@ -208,7 +210,8 @@ runs:
       id: eigen_cache
       with:
         path: ${{ env.EIGEN_INSTALL_DIR }}
-        key: eigen_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.EIGEN_VERSION }}_${{ hashFiles( format('{0}/*.yml', github.action_path) ) }}
+        key: eigen_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.EIGEN_VERSION }}_${{ env.HASH_FORMAT }}
+
     - name: Install Eigen
       shell: bash
       run: |
@@ -235,7 +238,8 @@ runs:
       id: pybind11_cache
       with:
         path: ${{ env.PYBIND11_INSTALL_DIR }}
-        key: pybind11_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.PYBIND11_VERSION }}_${{ hashFiles( format('{0}/*.yml', github.action_path) ) }}
+        key: pybind11_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.PYBIND11_VERSION }}_${{ env.HASH_FORMAT }}
+
     - name: Install pybind11
       shell: bash
       run: |
@@ -273,7 +277,7 @@ runs:
       id: sofa_cache
       with:
         path: ${{ inputs.sofa_root }}
-        key: sofa_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ inputs.sofa_version }}_${{ hashFiles('.github/workflows/*.yml') }}_${{ hashFiles('src/.github/workflows/*.yml') }}
+        key: sofa_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ inputs.sofa_version }}_${{ env.HASH_FORMAT }}
 
     - name: Download and install the latest SOFA ${{ inputs.sofa_version }} binaries
       shell: bash
