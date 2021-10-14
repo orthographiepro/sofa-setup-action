@@ -68,7 +68,7 @@ runs:
         
         SOFA_OS="$RUNNER_OS"
         if [[ "$SOFA_OS" == "macOS" ]]; then
-            SOFA_OS="MacOS"
+          SOFA_OS="MacOS"
         fi
         echo "SOFA_OS=$SOFA_OS" | tee -a $GITHUB_ENV
         echo "::set-output name=sofa_os::$(echo $SOFA_OS)"
@@ -78,29 +78,29 @@ runs:
         EIGEN_INSTALL_DIR="/tmp/deps_cache_is_for_windows_only"
         BOOST_INSTALL_DIR="/tmp/deps_cache_is_for_windows_only"
         SUDO='sudo'
-        if [[ "$SOFA_OS" == "Linux" ]]; then
-            PYTHON_VERSION=3.8
-            PYBIND11_VERSION=2.4.3
-            EIGEN_VERSION="apt-latest"
-            BOOST_VERSION="apt-latest"
-        elif [[ "$SOFA_OS" == "MacOS" ]]; then
-            PYTHON_VERSION=3.9
-            PYBIND11_VERSION=2.4.3
-            EIGEN_VERSION="brew-latest"
-            BOOST_VERSION="brew-latest"
-        elif [[ "$SOFA_OS" == "Windows" ]]; then
-            SUDO=''
-            PYTHON_VERSION=3.7
-            PYBIND11_VERSION=2.4.3
-            PYBIND11_INSTALL_DIR="C:/pybind11"
-            EIGEN_VERSION=3.3.7
-            EIGEN_INSTALL_DIR="C:/eigen"
-            BOOST_VERSION=1.69.0
-            BOOST_INSTALL_DIR="C:/boost"
-            
-            # vsdevcmd.bat is here: 'C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/Common7/Tools/vsdevcmd.bat'
-            VS_INSTALL_DIR="$(cmd //c 'vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath')"
-            VS_VSDEVCMD='cd /d '$VS_INSTALL_DIR'\Common7\Tools && VsDevCmd.bat -host_arch=amd64 -arch=amd64'
+        if [[ "$RUNNER_OS" == "Linux" ]]; then
+          PYTHON_VERSION=3.8
+          PYBIND11_VERSION=2.4.3
+          EIGEN_VERSION="apt-latest"
+          BOOST_VERSION="apt-latest"
+        elif [[ "$RUNNER_OS" == "MacOS" ]]; then
+          PYTHON_VERSION=3.9
+          PYBIND11_VERSION=2.4.3
+          EIGEN_VERSION="brew-latest"
+          BOOST_VERSION="brew-latest"
+        elif [[ "$RUNNER_OS" == "Windows" ]]; then
+          SUDO=''
+          PYTHON_VERSION=3.7
+          PYBIND11_VERSION=2.4.3
+          PYBIND11_INSTALL_DIR="C:/pybind11"
+          EIGEN_VERSION=3.3.7
+          EIGEN_INSTALL_DIR="C:/eigen"
+          BOOST_VERSION=1.69.0
+          BOOST_INSTALL_DIR="C:/boost"
+          
+          # vsdevcmd.bat is here: 'C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/Common7/Tools/vsdevcmd.bat'
+          VS_INSTALL_DIR="$(cmd //c 'vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath')"
+          VS_VSDEVCMD='cd /d '$VS_INSTALL_DIR'\Common7\Tools && VsDevCmd.bat -host_arch=amd64 -arch=amd64'
         fi
         
         echo "SUDO=$SUDO" | tee -a $GITHUB_ENV
@@ -177,9 +177,9 @@ runs:
       id: boost_cache
       with:
         path: ${{ env.BOOST_INSTALL_DIR }}
-        key: boost_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.BOOST_VERSION }}_${{ hashFiles('sofa-setup-action/*.yml') }}
+        key: boost_${{ env.RUN_BRANCH }}_${{ runner.name }}_${{ env.BOOST_VERSION }}_${{ hashFiles('sofa-setup-action/*.yml') }}
     
-    - name: Install Boost
+    - name: Install Boost headers
       shell: bash
       run: |
         if [[ "$RUNNER_OS" == "Linux" ]]; then
@@ -192,9 +192,13 @@ runs:
             major="$(echo $BOOST_VERSION | cut -d. -f1)"
             minor="$(echo $BOOST_VERSION | cut -d. -f2)"
             patch="$(echo $BOOST_VERSION | cut -d. -f3)"
-            curl --output "${{ runner.temp }}/boost_tmp.exe" -L \
-              "https://downloads.sourceforge.net/project/boost/boost-binaries/${BOOST_VERSION}/boost_${major}_${minor}_${patch}-msvc-14.1-64.exe"              
-            cmd //c "${{ runner.temp }}/boost_tmp.exe /NORESTART /VERYSILENT /DIR=$BOOST_INSTALL_DIR"
+            curl --output "${{ runner.temp }}/boost_tmp.7z" -L \
+              "https://boostorg.jfrog.io/ui/native/main/release/${BOOST_VERSION}/source/boost_${major}_${minor}_${patch}.7z"
+            7z x "${{ runner.temp }}/boost_tmp.7z" -o"${{ runner.temp }}/boost_tmp"
+            mv "${{ runner.temp }}"/boost_tmp/boost*/* $BOOST_INSTALL_DIR
+            #curl --output "${{ runner.temp }}/boost_tmp.exe" -L \
+            #  "https://downloads.sourceforge.net/project/boost/boost-binaries/${BOOST_VERSION}/boost_${major}_${minor}_${patch}-msvc-14.1-64.exe"
+            #cmd //c "${{ runner.temp }}/boost_tmp.exe /NORESTART /VERYSILENT /DIR=$BOOST_INSTALL_DIR"
           fi
           echo "BOOST_ROOT=$BOOST_INSTALL_DIR" | tee -a $GITHUB_ENV
           echo "Boost_ROOT=$BOOST_INSTALL_DIR" | tee -a $GITHUB_ENV
@@ -206,7 +210,7 @@ runs:
       id: eigen_cache
       with:
         path: ${{ env.EIGEN_INSTALL_DIR }}
-        key: eigen_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.EIGEN_VERSION }}_${{ hashFiles('sofa-setup-action/*.yml') }}
+        key: eigen_${{ env.RUN_BRANCH }}_${{ runner.name }}_${{ env.EIGEN_VERSION }}_${{ hashFiles('sofa-setup-action/*.yml') }}
 
     - name: Install Eigen
       shell: bash
@@ -229,51 +233,12 @@ runs:
           echo "$EIGEN_INSTALL_DIR" >> $GITHUB_PATH
         fi
         
-    - name: pybind11 cache files
-      uses: actions/cache@v2
-      id: pybind11_cache
-      with:
-        path: ${{ env.PYBIND11_INSTALL_DIR }}
-        key: pybind11_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ env.PYBIND11_VERSION }}_${{ hashFiles('sofa-setup-action/*.yml') }}
-
-    - name: Install pybind11
-      shell: bash
-      run: |
-        # Build and install pybind11
-        if [[ "$RUNNER_OS" == "Windows" ]]; then
-          if ! ls -a "$PYBIND11_INSTALL_DIR"/* >/dev/null 2>&1; then
-            # directory does not exist or is empty
-            git clone -b v$PYBIND11_VERSION --depth 1 https://github.com/pybind/pybind11.git "${{ runner.temp }}/pybind11_tmp"
-            cmd //c "${{ env.VS_VSDEVCMD }} && \
-              cd /d ${{ runner.temp }}/pybind11_tmp && \
-              cmake \
-                -GNinja \
-                -DCMAKE_BUILD_TYPE=Release \
-                -DPYBIND11_TEST=OFF \
-                -DCMAKE_INSTALL_PREFIX=$PYBIND11_INSTALL_DIR \
-                . && \
-                ninja install"
-          fi          
-          echo "pybind11_ROOT=$PYBIND11_INSTALL_DIR" | tee -a $GITHUB_ENV
-          echo "$PYBIND11_INSTALL_DIR" >> $GITHUB_PATH
-        else
-          git clone -b v${PYBIND11_VERSION} --depth 1 https://github.com/pybind/pybind11.git "${{ runner.temp }}/pybind11_tmp"
-          cd "${{ runner.temp }}/pybind11_tmp"
-          cmake \
-            -GNinja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DPYBIND11_TEST=OFF \
-            -DPYTHON_EXECUTABLE=$(which python${{ env.PYTHON_VERSION }}) \
-            .
-          sudo ninja install
-        fi
-        
     - name: SOFA cache files
       uses: actions/cache@v2
       id: sofa_cache
       with:
         path: ${{ inputs.sofa_root }}
-        key: sofa_${{ env.RUN_BRANCH }}_${{ env.SOFA_OS }}_${{ inputs.sofa_version }}_${{ hashFiles('sofa-setup-action/*.yml') }}
+        key: sofa_${{ env.RUN_BRANCH }}_${{ runner.name }}_${{ inputs.sofa_version }}_${{ hashFiles('sofa-setup-action/*.yml') }}
 
     - name: Download and install the latest SOFA ${{ inputs.sofa_version }} binaries
       shell: bash
