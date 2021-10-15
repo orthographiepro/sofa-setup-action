@@ -116,10 +116,14 @@ runs:
         PYTHON_ROOT="$(find $RUNNER_TOOL_CACHE -maxdepth 3 -type d -path '**/Python/${{ steps.install-python.outputs.python-version }}*/x64')"
         PYTHON_ROOT="$(cd $PYTHON_ROOT && pwd -W 2>/dev/null || pwd)"
         
+        echo "----- PYTHON_ROOT -----"
+        ls -la "$PYTHON_ROOT"
+        echo "-----------------------"
         echo "PYTHONIOENCODING=$PYTHONIOENCODING" | tee -a $GITHUB_ENV
         echo "PYTHONUSERBASE=$PYTHONUSERBASE" | tee -a $GITHUB_ENV
         echo "PYTHON_ROOT=$PYTHON_ROOT" | tee -a $GITHUB_ENV
         echo "Python_ROOT=$PYTHON_ROOT" | tee -a $GITHUB_ENV
+        echo "-----------------------"
         
         echo "::set-output name=python_root::$(echo $PYTHON_ROOT)"
 
@@ -127,14 +131,14 @@ runs:
       shell: bash
       run: |
         if [[ "$RUNNER_OS" == "Linux" ]]; then
-          python3 -m pip install numpy scipy
+          $PYTHON_ROOT/python -m pip install numpy scipy
         elif [[ "$RUNNER_OS" == "macOS" ]]; then
           brew list | grep python | while read package; do
             brew unlink $package
           done
-          python3 -m pip install numpy scipy
+          $PYTHON_ROOT/python -m pip install numpy scipy
         elif [[ "$RUNNER_OS" == "Windows" ]]; then
-          cmd //c 'python -m pip install numpy scipy'
+          cmd //c "$PYTHON_ROOT/python.exe -m pip install numpy scipy"
         fi
 
     - name: Install build tools
