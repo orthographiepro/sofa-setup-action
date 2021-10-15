@@ -17,9 +17,6 @@ outputs:
   sofa_version:
     description: "SOFA version"
     value: ${{ inputs.sofa_version }}
-  sofa_os:
-    description: "Runner OS with name adapted for SOFA download"
-    value: ${{ steps.set-env-vars.outputs.sofa_os }}
   run_branch:
     description: "Pretty git branch of this workflow run"
     value: ${{ steps.set-env-vars.outputs.run_branch }}
@@ -66,12 +63,11 @@ runs:
         echo "RUN_BRANCH=$RUN_BRANCH" | tee -a $GITHUB_ENV
         echo "::set-output name=run_branch::$(echo $RUN_BRANCH)"
         
-        SOFA_OS="$RUNNER_OS"
-        if [[ "$SOFA_OS" == "macOS" ]]; then
-          SOFA_OS="MacOS"
+        SOFA_VERSION_INT="$(echo "${{ inputs.sofa_version }}" | sed 's:[^0-9]*::g')"
+        if [ -z "$SOFA_VERSION_INT" ]; then
+            SOFA_VERSION_INT=9999 # master
         fi
-        echo "SOFA_OS=$SOFA_OS" | tee -a $GITHUB_ENV
-        echo "::set-output name=sofa_os::$(echo $SOFA_OS)"
+        echo "SOFA_VERSION_INT=$SOFA_VERSION_INT" | tee -a $GITHUB_ENV
         
         # TODO: find a better way to handle dependency versions
         PYBIND11_INSTALL_DIR="/tmp/deps_cache_is_for_windows_only"
@@ -135,7 +131,7 @@ runs:
       run: |
         PYTHONIOENCODING="UTF-8"
         PYTHONUSERBASE="/tmp/pythonuserbase"
-        if [[ "$SOFA_OS" == "Windows" ]]; then
+        if [[ "$RUNNER_OS" == "Windows" ]]; then
           PYTHONUSERBASE="C:/pythonuserbase"
         fi
         mkdir -p "$PYTHONUSERBASE" && chmod -R 777 "$PYTHONUSERBASE"
@@ -177,13 +173,16 @@ runs:
       id: boost_cache
       with:
         path: ${{ env.BOOST_INSTALL_DIR }}
-        key: boost_${{ env.RUN_BRANCH }}_${{ runner.os }}_${{ env.BOOST_VERSION }}_${{ hashFiles('sofa-setup-action/*.yml') }}
+        key: boost_${{ env.BOOST_VERSION }}_${{ runner.os }}_${{ inputs.version }}_${{ hashFiles('sofa-setup-action/*.yml') }}
     
-    - name: Install Boost headers
+    - name: Install Boost
       shell: bash
       run: |
         if [[ "$RUNNER_OS" == "Linux" ]]; then
-          sudo apt-get -qq install libboost-dev libboost-system-dev libboost-filesystem-dev libboost-program-options-dev libboost-thread-dev
+          sudo apt-get -qq install libboost-dev
+          if [ "$SOFA_VERSION_INT" -lt 2106 ]; then
+            sudo apt-get -qq install libboost-system-dev libboost-filesystem-dev libboost-program-options-dev libboost-thread-dev
+          fi
         elif [[ "$RUNNER_OS" == "macOS" ]]; then
           brew install boost
         elif [[ "$RUNNER_OS" == "Windows" ]]; then
@@ -192,13 +191,17 @@ runs:
             major="$(echo $BOOST_VERSION | cut -d. -f1)"
             minor="$(echo $BOOST_VERSION | cut -d. -f2)"
             patch="$(echo $BOOST_VERSION | cut -d. -f3)"
-            curl --output "${{ runner.temp }}/boost_tmp.7z" -L \
-              "https://downloads.sourceforge.net/project/boost/boost/${BOOST_VERSION}/boost_${major}_${minor}_${patch}.7z"
-            7z x "${{ runner.temp }}/boost_tmp.7z" -o"${{ runner.temp }}/boost_tmp"
-            mv "${{ runner.temp }}"/boost_tmp/boost* "$BOOST_INSTALL_DIR"
-            #curl --output "${{ runner.temp }}/boost_tmp.exe" -L \
-            #  "https://downloads.sourceforge.net/project/boost/boost-binaries/${BOOST_VERSION}/boost_${major}_${minor}_${patch}-msvc-14.1-64.exe"
-            #cmd //c "${{ runner.temp }}/boost_tmp.exe /NORESTART /VERYSILENT /DIR=$BOOST_INSTALL_DIR"
+            if [ "$SOFA_VERSION_INT" -ge 2106 ]; then
+              # headers only
+              curl --output "${{ runner.temp }}/boost_tmp.7z" -L \
+                "https://downloads.sourceforge.net/project/boost/boost/${BOOST_VERSION}/boost_${major}_${minor}_${patch}.7z"
+              7z x "${{ runner.temp }}/boost_tmp.7z" -o"${{ runner.temp }}/boost_tmp"
+              mv "${{ runner.temp }}"/boost_tmp/boost* "$BOOST_INSTALL_DIR"
+            else
+              curl --output "${{ runner.temp }}/boost_tmp.exe" -L \
+                "https://downloads.sourceforge.net/project/boost/boost-binaries/${BOOST_VERSION}/boost_${major}_${minor}_${patch}-msvc-14.1-64.exe"
+              cmd //c "${{ runner.temp }}/boost_tmp.exe /NORESTART /VERYSILENT /DIR=$BOOST_INSTALL_DIR"
+            fi
           fi
           echo "BOOST_ROOT=$BOOST_INSTALL_DIR" | tee -a $GITHUB_ENV
           echo "Boost_ROOT=$BOOST_INSTALL_DIR" | tee -a $GITHUB_ENV
@@ -210,7 +213,7 @@ runs:
       id: eigen_cache
       with:
         path: ${{ env.EIGEN_INSTALL_DIR }}
-        key: eigen_${{ env.RUN_BRANCH }}_${{ runner.os }}_${{ env.EIGEN_VERSION }}_${{ hashFiles('sofa-setup-action/*.yml') }}
+        key: eigen_${{ env.EIGEN_VERSION }}_${{ runner.os }}_${{ hashFiles('sofa-setup-action/*.yml') }}
 
     - name: Install Eigen
       shell: bash
@@ -238,12 +241,16 @@ runs:
       id: sofa_cache
       with:
         path: ${{ inputs.sofa_root }}
-        key: sofa_${{ env.RUN_BRANCH }}_${{ runner.os }}_${{ inputs.sofa_version }}_${{ hashFiles('sofa-setup-action/*.yml') }}
+        key: sofa_${{ inputs.sofa_version }}_${{ runner.os }}_${{ hashFiles('sofa-setup-action/*.yml') }}
 
     - name: Download and install the latest SOFA ${{ inputs.sofa_version }} binaries
       shell: bash
       run: |
-        # Download and install the latest SOFA ${{ inputs.sofa_version }} binaries
+        # Download and install the latest SOFA ${{ inputs.sofa_version }} binaries        
+        SOFA_OS="$RUNNER_OS"
+        if [[ "$SOFA_OS" == "macOS" ]]; then
+          SOFA_OS="MacOS"
+        fi
         if ! ls -a "${{ inputs.sofa_root }}"/* >/dev/null 2>&1; then
           # directory does not exist or is empty
           mkdir -p "${{ runner.temp }}/sofa_tmp/zip" "${{ runner.temp }}/sofa_tmp/binaries"
@@ -255,9 +262,13 @@ runs:
           $SUDO mv "${{ runner.temp }}"/sofa_tmp/binaries/SOFA_*/* "${{ inputs.sofa_root }}"
         fi
         echo '${{ inputs.sofa_root }}' >> $GITHUB_PATH
-        echo '${{ inputs.sofa_root }}\bin' >> $GITHUB_PATH
+        [[ "$RUNNER_OS" == "Windows" ]] && echo '${{ inputs.sofa_root }}\bin' >> $GITHUB_PATH
+        echo '--------------------------------------------'
         echo "SOFA downloaded and installed in ${{ inputs.sofa_root }}"
-        echo '----- ls -la "${{ inputs.sofa_root }}" -----'
+        echo '--------------------------------------------'
+        echo 'ls -la "${{ inputs.sofa_root }}"'
         ls -la "${{ inputs.sofa_root }}"
         echo '--------------------------------------------'
+        echo 'cat "${{ inputs.sofa_root }}"/git-info.txt'
         cat "${{ inputs.sofa_root }}"/git-info.txt
+        echo '--------------------------------------------'
