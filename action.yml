@@ -118,9 +118,9 @@ runs:
         if [[ "$sofa_version_str" != "v"*"."* ]]; then
           # default to latest release minor version (e.g v20.12)
           sofa_version_str="$( \
-            curl --silent -L "https://api.github.com/repos/sofa-framework/sofa/releases/latest" \
+            ( curl --silent -L "https://api.github.com/repos/sofa-framework/sofa/releases/latest" || true ) \
             | python -c "exec(\"import sys, json;\ntry:\n  print(json.loads(sys.stdin)['target_commitish']);\nexcept Exception:\n  print('v21.06');\")" \
-            )"
+          )"
         fi
         SOFA_VERSION_FOR_DEPS="$(echo "$sofa_version_str" | sed 's:[^0-9]*::g')"
         echo "SOFA_VERSION_FOR_DEPS=$SOFA_VERSION_FOR_DEPS" | tee -a $GITHUB_ENV
