@@ -152,7 +152,7 @@ runs:
           cmd //c 'choco install -y --no-progress nsis curl ninja'
         fi
 
-    - name: Boost cache files
+    - name: Setup cache for Boost files
       uses: actions/cache@v2
       id: boost_cache
       with:
@@ -164,8 +164,11 @@ runs:
       run: |
         if [[ "$RUNNER_OS" == "Linux" ]]; then
           sudo apt-get -qq install libboost-dev
+          if [ "$SOFA_VERSION_INT" -lt 2112 ]; then
+            sudo apt-get -qq install libboost-filesystem-dev 
+          fi
           if [ "$SOFA_VERSION_INT" -lt 2106 ]; then
-            sudo apt-get -qq install libboost-system-dev libboost-filesystem-dev libboost-program-options-dev libboost-thread-dev
+            sudo apt-get -qq install libboost-system-dev libboost-program-options-dev libboost-thread-dev
           fi
         elif [[ "$RUNNER_OS" == "macOS" ]]; then
           brew install boost
@@ -192,7 +195,7 @@ runs:
           echo "$BOOST_INSTALL_DIR" >> $GITHUB_PATH
         fi
 
-    - name: Eigen cache files
+    - name: Setup cache for Eigen files
       uses: actions/cache@v2
       id: eigen_cache
       with:
@@ -220,7 +223,7 @@ runs:
           echo "$EIGEN_INSTALL_DIR" >> $GITHUB_PATH
         fi
 
-    - name: SOFA cache files
+    - name: Setup cache for SOFA files
       uses: actions/cache@v2
       id: sofa_cache
       with:
