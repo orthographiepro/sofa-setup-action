@@ -57,12 +57,6 @@ runs:
         echo "RUN_BRANCH=$RUN_BRANCH" | tee -a $GITHUB_ENV
         echo "::set-output name=run_branch::$(echo $RUN_BRANCH)"
         
-        SOFA_VERSION_INT="$(echo "${{ inputs.sofa_version }}" | sed 's:[^0-9]*::g')"
-        if [ -z "$SOFA_VERSION_INT" ]; then
-            SOFA_VERSION_INT=9999 # master
-        fi
-        echo "SOFA_VERSION_INT=$SOFA_VERSION_INT" | tee -a $GITHUB_ENV
-        
         # TODO: find a better way to handle dependency versions
         EIGEN_INSTALL_DIR="/tmp/deps_cache_is_for_windows_only"
         BOOST_INSTALL_DIR="/tmp/deps_cache_is_for_windows_only"
@@ -102,30 +96,34 @@ runs:
       with:
         python-version: '3.9'
 
-    - name: Set python env vars
+    - name: Set python-dependent env vars
       id: set-python-vars
       shell: bash
       run: |
-        PYTHONIOENCODING="UTF-8"
         PYTHONUSERBASE="/tmp/pythonuserbase"
         if [[ "$RUNNER_OS" == "Windows" ]]; then
           PYTHONUSERBASE="C:/pythonuserbase"
         fi
         mkdir -p "$PYTHONUSERBASE" && chmod -R 777 "$PYTHONUSERBASE"
+        echo "PYTHONUSERBASE=$PYTHONUSERBASE" | tee -a $GITHUB_ENV
+        echo "PYTHONIOENCODING=UTF-8" | tee -a $GITHUB_ENV
         
         PYTHON_ROOT="$(find $RUNNER_TOOL_CACHE -maxdepth 3 -type d -path '**/Python/${{ steps.install-python.outputs.python-version }}*/x64')"
-        PYTHON_ROOT="$(cd $PYTHON_ROOT && pwd -W 2>/dev/null || pwd)"
-        
-        echo "----- PYTHON_ROOT -----"
-        ls -la "$PYTHON_ROOT"
-        echo "-----------------------"
-        echo "PYTHONIOENCODING=$PYTHONIOENCODING" | tee -a $GITHUB_ENV
-        echo "PYTHONUSERBASE=$PYTHONUSERBASE" | tee -a $GITHUB_ENV
+        PYTHON_ROOT="$(cd $PYTHON_ROOT && pwd -W 2>/dev/null || pwd)"   
         echo "PYTHON_ROOT=$PYTHON_ROOT" | tee -a $GITHUB_ENV
-        echo "Python_ROOT=$PYTHON_ROOT" | tee -a $GITHUB_ENV
-        echo "-----------------------"
+        echo "Python_ROOT=$PYTHON_ROOT" | tee -a $GITHUB_ENV        
+        echo "::set-output name=python_root::$(echo $PYTHON_ROOT)"     
         
-        echo "::set-output name=python_root::$(echo $PYTHON_ROOT)"
+        sofa_version_str="${{ inputs.sofa_version }}"
+        if [[ "$sofa_version_str" != "v"*"."* ]]; then
+          # default to latest release minor version (e.g v20.12)
+          sofa_version_str="$( \
+            curl --silent -L "https://api.github.com/repos/sofa-framework/sofa/releases/latest" \
+            | python -c "import sys, json; print(json.load(sys.stdin)['target_commitish'])" \
+            )"
+        fi
+        SOFA_VERSION_FOR_DEPS="$(echo "$sofa_version_str" | sed 's:[^0-9]*::g')"
+        echo "SOFA_VERSION_FOR_DEPS=$SOFA_VERSION_FOR_DEPS" | tee -a $GITHUB_ENV
 
     - name: Install numpy and scipy
       shell: bash
@@ -164,7 +162,7 @@ runs:
       run: |
         if [[ "$RUNNER_OS" == "Linux" ]]; then
           sudo apt-get -qq install libboost-dev
-          if [ "$SOFA_VERSION_INT" -lt 2112 ]; then
+          if [ "$SOFA_VERSION_FOR_DEPS" -le 2106 ]; then
             sudo apt-get -qq install libboost-system-dev libboost-filesystem-dev libboost-program-options-dev libboost-thread-dev
           fi
         elif [[ "$RUNNER_OS" == "macOS" ]]; then
@@ -175,17 +173,17 @@ runs:
             major="$(echo $BOOST_VERSION | cut -d. -f1)"
             minor="$(echo $BOOST_VERSION | cut -d. -f2)"
             patch="$(echo $BOOST_VERSION | cut -d. -f3)"
-            if [ "$SOFA_VERSION_INT" -ge 2112 ]; then
+            if [ "$SOFA_VERSION_FOR_DEPS" -le 2106 ]; then
+              # headers and libs
+              curl --output "${{ runner.temp }}/boost_tmp.exe" -L \
+                "https://downloads.sourceforge.net/project/boost/boost-binaries/${BOOST_VERSION}/boost_${major}_${minor}_${patch}-msvc-14.1-64.exe"
+              cmd //c "${{ runner.temp }}/boost_tmp.exe /NORESTART /VERYSILENT /DIR=$BOOST_INSTALL_DIR"
+            else
               # headers only
               curl --output "${{ runner.temp }}/boost_tmp.7z" -L \
                 "https://downloads.sourceforge.net/project/boost/boost/${BOOST_VERSION}/boost_${major}_${minor}_${patch}.7z"
               7z x "${{ runner.temp }}/boost_tmp.7z" -o"${{ runner.temp }}/boost_tmp"
               mv "${{ runner.temp }}"/boost_tmp/boost* "$BOOST_INSTALL_DIR"
-            else
-              # headers and libs
-              curl --output "${{ runner.temp }}/boost_tmp.exe" -L \
-                "https://downloads.sourceforge.net/project/boost/boost-binaries/${BOOST_VERSION}/boost_${major}_${minor}_${patch}-msvc-14.1-64.exe"
-              cmd //c "${{ runner.temp }}/boost_tmp.exe /NORESTART /VERYSILENT /DIR=$BOOST_INSTALL_DIR"
             fi
           fi
           echo "BOOST_ROOT=$BOOST_INSTALL_DIR" | tee -a $GITHUB_ENV
