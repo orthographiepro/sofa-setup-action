@@ -165,10 +165,7 @@ runs:
         if [[ "$RUNNER_OS" == "Linux" ]]; then
           sudo apt-get -qq install libboost-dev
           if [ "$SOFA_VERSION_INT" -lt 2112 ]; then
-            sudo apt-get -qq install libboost-filesystem-dev 
-          fi
-          if [ "$SOFA_VERSION_INT" -lt 2106 ]; then
-            sudo apt-get -qq install libboost-system-dev libboost-program-options-dev libboost-thread-dev
+            sudo apt-get -qq install libboost-system-dev libboost-filesystem-dev libboost-program-options-dev libboost-thread-dev
           fi
         elif [[ "$RUNNER_OS" == "macOS" ]]; then
           brew install boost
@@ -178,13 +175,14 @@ runs:
             major="$(echo $BOOST_VERSION | cut -d. -f1)"
             minor="$(echo $BOOST_VERSION | cut -d. -f2)"
             patch="$(echo $BOOST_VERSION | cut -d. -f3)"
-            if [ "$SOFA_VERSION_INT" -ge 2106 ]; then
+            if [ "$SOFA_VERSION_INT" -ge 2112 ]; then
               # headers only
               curl --output "${{ runner.temp }}/boost_tmp.7z" -L \
                 "https://downloads.sourceforge.net/project/boost/boost/${BOOST_VERSION}/boost_${major}_${minor}_${patch}.7z"
               7z x "${{ runner.temp }}/boost_tmp.7z" -o"${{ runner.temp }}/boost_tmp"
               mv "${{ runner.temp }}"/boost_tmp/boost* "$BOOST_INSTALL_DIR"
             else
+              # headers and libs
               curl --output "${{ runner.temp }}/boost_tmp.exe" -L \
                 "https://downloads.sourceforge.net/project/boost/boost-binaries/${BOOST_VERSION}/boost_${major}_${minor}_${patch}-msvc-14.1-64.exe"
               cmd //c "${{ runner.temp }}/boost_tmp.exe /NORESTART /VERYSILENT /DIR=$BOOST_INSTALL_DIR"
