@@ -100,7 +100,7 @@ runs:
       id: install-python
       uses: actions/setup-python@v2
       with:
-        python-version: '3.x'
+        python-version: '3.9'
 
     - name: Set python env vars
       id: set-python-vars
