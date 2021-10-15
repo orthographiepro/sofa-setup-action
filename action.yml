@@ -119,7 +119,7 @@ runs:
           # default to latest release minor version (e.g v20.12)
           sofa_version_str="$( \
             curl --silent -L "https://api.github.com/repos/sofa-framework/sofa/releases/latest" \
-            | python -c "import sys, json; print(json.load(sys.stdin)['target_commitish'])" \
+            | python -c "exec(\"import sys, json;\ntry:\n  print(json.loads(sys.stdin)['target_commitish']);\nexcept Exception:\n  print('v21.06');\")" \
             )"
         fi
         SOFA_VERSION_FOR_DEPS="$(echo "$sofa_version_str" | sed 's:[^0-9]*::g')"
@@ -155,7 +155,7 @@ runs:
       id: boost_cache
       with:
         path: ${{ env.BOOST_INSTALL_DIR }}
-        key: boost-${{ env.BOOST_VERSION }}_${{ runner.os }}_for-SOFA-${{ inputs.version }}_${{ hashFiles('sofa-setup-action/*.yml') }}
+        key: boost-${{ env.BOOST_VERSION }}_${{ runner.os }}_for-SOFA-${{ inputs.sofa_version }}_${{ hashFiles('sofa-setup-action/*.yml') }}
 
     - name: Install Boost
       shell: bash
