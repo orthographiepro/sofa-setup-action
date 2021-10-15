@@ -29,7 +29,7 @@ jobs:
 
       - name: Setup SOFA and deps
         id: sofa
-        uses: guparan/sofa-setup-action@master
+        uses: sofa-framework/sofa-setup-action@master
         with:
           sofa_version: ${{ matrix.sofa_branch }}
           sofa_root: ${{ env.SOFA_ROOT }}
