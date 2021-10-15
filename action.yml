@@ -239,14 +239,15 @@ runs:
           $SUDO mkdir -p "${{ inputs.sofa_root }}"
           $SUDO mv "${{ runner.temp }}"/sofa_tmp/binaries/SOFA_*/* "${{ inputs.sofa_root }}"
         fi
-        echo '${{ inputs.sofa_root }}' >> $GITHUB_PATH
-        [[ "$RUNNER_OS" == "Windows" ]] && echo '${{ inputs.sofa_root }}\bin' >> $GITHUB_PATH
         echo '--------------------------------------------'
-        echo "SOFA downloaded and installed in ${{ inputs.sofa_root }}"
-        echo '--------------------------------------------'
-        echo 'ls -la "${{ inputs.sofa_root }}"'
+        echo "SOFA successfully downloaded and installed in ${{ inputs.sofa_root }}"
+        echo '------------- inputs.sofa_root -------------'
         ls -la "${{ inputs.sofa_root }}"
-        echo '--------------------------------------------'
-        echo 'cat "${{ inputs.sofa_root }}"/git-info.txt'
+        echo '--------------- git-info.txt ---------------'
         cat "${{ inputs.sofa_root }}"/git-info.txt
         echo '--------------------------------------------'
+        echo '${{ inputs.sofa_root }}' >> $GITHUB_PATH
+        if [[ "$RUNNER_OS" == "Windows" ]]; then
+          echo '${{ inputs.sofa_root }}\bin' >> $GITHUB_PATH
+        fi
+        echo "SOFA_ROOT=${{ inputs.sofa_root }}" | tee -a $GITHUB_ENV
