@@ -23,12 +23,6 @@ outputs:
   python_root:
     description: "Root directory of the Python installed for SOFA"
     value: ${{ steps.set-python-vars.outputs.python_root }}
-  python_version:
-    description: "Version of the Python installed for SOFA"
-    value: ${{ steps.set-env-vars.outputs.python_version }}
-  pybind11_version:
-    description: "Pybind11 version installed for SOFA"
-    value: ${{ steps.set-env-vars.outputs.pybind11_version }}
   vs_install_dir:
     description: "VS install directory"
     value: ${{ steps.set-env-vars.outputs.vs_install_dir }}
@@ -70,25 +64,17 @@ runs:
         echo "SOFA_VERSION_INT=$SOFA_VERSION_INT" | tee -a $GITHUB_ENV
         
         # TODO: find a better way to handle dependency versions
-        PYBIND11_INSTALL_DIR="/tmp/deps_cache_is_for_windows_only"
         EIGEN_INSTALL_DIR="/tmp/deps_cache_is_for_windows_only"
         BOOST_INSTALL_DIR="/tmp/deps_cache_is_for_windows_only"
         SUDO='sudo'
         if [[ "$RUNNER_OS" == "Linux" ]]; then
-          PYTHON_VERSION=3.8
-          PYBIND11_VERSION=2.4.3
           EIGEN_VERSION="apt-latest"
           BOOST_VERSION="apt-latest"
         elif [[ "$RUNNER_OS" == "macOS" ]]; then
-          PYTHON_VERSION=3.9
-          PYBIND11_VERSION=2.4.3
           EIGEN_VERSION="brew-latest"
           BOOST_VERSION="brew-latest"
         elif [[ "$RUNNER_OS" == "Windows" ]]; then
           SUDO=''
-          PYTHON_VERSION=3.7
-          PYBIND11_VERSION=2.4.3
-          PYBIND11_INSTALL_DIR="C:/pybind11"
           EIGEN_VERSION=3.3.7
           EIGEN_INSTALL_DIR="C:/eigen"
           BOOST_VERSION=1.69.0
@@ -100,32 +86,23 @@ runs:
         fi
         
         echo "SUDO=$SUDO" | tee -a $GITHUB_ENV
-        
-        echo "PYTHON_VERSION=$PYTHON_VERSION" | tee -a $GITHUB_ENV
-        
-        echo "PYBIND11_VERSION=$PYBIND11_VERSION" | tee -a $GITHUB_ENV
-        echo "PYBIND11_INSTALL_DIR=$PYBIND11_INSTALL_DIR" | tee -a $GITHUB_ENV
-        
         echo "EIGEN_VERSION=$EIGEN_VERSION" | tee -a $GITHUB_ENV
         echo "EIGEN_INSTALL_DIR=$EIGEN_INSTALL_DIR" | tee -a $GITHUB_ENV
-        
         echo "BOOST_VERSION=$BOOST_VERSION" | tee -a $GITHUB_ENV
         echo "BOOST_INSTALL_DIR=$BOOST_INSTALL_DIR" | tee -a $GITHUB_ENV
-        
         echo "VS_INSTALL_DIR=$VS_INSTALL_DIR" | tee -a $GITHUB_ENV
         echo "VS_VSDEVCMD=$VS_VSDEVCMD" | tee -a $GITHUB_ENV
         
-        echo "::set-output name=python_version::$(echo $PYTHON_VERSION)"
-        echo "::set-output name=pybind11_version::$(echo $PYBIND11_VERSION)"
         echo "::set-output name=vs_install_dir::$(echo $VS_INSTALL_DIR)"
         echo "::set-output name=vs_vsdevcmd::$(echo $VS_VSDEVCMD)"
 
-    - name: Install Python ${{ env.PYTHON_VERSION }}
+    - name: Install Python
+      id: install-python
       uses: actions/setup-python@v2
       with:
-        python-version: ${{ env.PYTHON_VERSION }}
-        
-    - name: Set vars PYTHON_ROOT and outputs.python_root 
+        python-version: '3.x'
+
+    - name: Set python env vars
       id: set-python-vars
       shell: bash
       run: |
@@ -135,12 +112,15 @@ runs:
           PYTHONUSERBASE="C:/pythonuserbase"
         fi
         mkdir -p "$PYTHONUSERBASE" && chmod -R 777 "$PYTHONUSERBASE"
+        
+        PYTHON_ROOT="$(find $RUNNER_TOOL_CACHE -maxdepth 3 -type d -path '**/Python/${{ steps.install-python.outputs.python-version }}*/x64')"
+        PYTHON_ROOT="$(cd $PYTHON_ROOT && pwd -W 2>/dev/null || pwd)"
+        
         echo "PYTHONIOENCODING=$PYTHONIOENCODING" | tee -a $GITHUB_ENV
         echo "PYTHONUSERBASE=$PYTHONUSERBASE" | tee -a $GITHUB_ENV
-        
-        PYTHON_ROOT="$(find $RUNNER_TOOL_CACHE -maxdepth 3 -type d -path '**/Python/${{ env.PYTHON_VERSION }}*/x64')"
-        PYTHON_ROOT="$(cd $PYTHON_ROOT && pwd -W 2>/dev/null || pwd)"
         echo "PYTHON_ROOT=$PYTHON_ROOT" | tee -a $GITHUB_ENV
+        echo "Python_ROOT=$PYTHON_ROOT" | tee -a $GITHUB_ENV
+        
         echo "::set-output name=python_root::$(echo $PYTHON_ROOT)"
 
     - name: Install numpy and scipy
@@ -156,7 +136,7 @@ runs:
         elif [[ "$RUNNER_OS" == "Windows" ]]; then
           cmd //c 'python -m pip install numpy scipy'
         fi
-      
+
     - name: Install build tools
       shell: bash
       run: |
@@ -167,14 +147,14 @@ runs:
         elif [[ "$RUNNER_OS" == "Windows" ]]; then
           cmd //c 'choco install -y --no-progress nsis curl ninja'
         fi
-    
+
     - name: Boost cache files
       uses: actions/cache@v2
       id: boost_cache
       with:
         path: ${{ env.BOOST_INSTALL_DIR }}
-        key: boost_${{ env.BOOST_VERSION }}_${{ runner.os }}_${{ inputs.version }}_${{ hashFiles('sofa-setup-action/*.yml') }}
-    
+        key: boost-${{ env.BOOST_VERSION }}_${{ runner.os }}_for-SOFA-${{ inputs.version }}_${{ hashFiles('sofa-setup-action/*.yml') }}
+
     - name: Install Boost
       shell: bash
       run: |
@@ -207,19 +187,19 @@ runs:
           echo "Boost_ROOT=$BOOST_INSTALL_DIR" | tee -a $GITHUB_ENV
           echo "$BOOST_INSTALL_DIR" >> $GITHUB_PATH
         fi
-        
+
     - name: Eigen cache files
       uses: actions/cache@v2
       id: eigen_cache
       with:
         path: ${{ env.EIGEN_INSTALL_DIR }}
-        key: eigen_${{ env.EIGEN_VERSION }}_${{ runner.os }}_${{ hashFiles('sofa-setup-action/*.yml') }}
+        key: eigen-${{ env.EIGEN_VERSION }}_${{ runner.os }}_${{ hashFiles('sofa-setup-action/*.yml') }}
 
     - name: Install Eigen
       shell: bash
       run: |
         if [[ "$RUNNER_OS" == "Linux" ]]; then
-          sudo apt-get -qq install libeigen3-dev 
+          sudo apt-get -qq install libeigen3-dev
         elif [[ "$RUNNER_OS" == "macOS" ]]; then
           brew install eigen
         elif [[ "$RUNNER_OS" == "Windows" ]]; then
@@ -235,18 +215,18 @@ runs:
           echo "Eigen3_ROOT=$EIGEN_INSTALL_DIR" | tee -a $GITHUB_ENV
           echo "$EIGEN_INSTALL_DIR" >> $GITHUB_PATH
         fi
-        
+
     - name: SOFA cache files
       uses: actions/cache@v2
       id: sofa_cache
       with:
         path: ${{ inputs.sofa_root }}
-        key: sofa_${{ inputs.sofa_version }}_${{ runner.os }}_${{ hashFiles('sofa-setup-action/*.yml') }}
+        key: sofa-${{ inputs.sofa_version }}_${{ runner.os }}_${{ hashFiles('sofa-setup-action/*.yml') }}
 
     - name: Download and install the latest SOFA ${{ inputs.sofa_version }} binaries
       shell: bash
       run: |
-        # Download and install the latest SOFA ${{ inputs.sofa_version }} binaries        
+        # Download and install the latest SOFA ${{ inputs.sofa_version }} binaries
         SOFA_OS="$RUNNER_OS"
         if [[ "$SOFA_OS" == "macOS" ]]; then
           SOFA_OS="MacOS"
@@ -257,7 +237,7 @@ runs:
           curl --output "${{ runner.temp }}/sofa_tmp/${SOFA_OS}.zip" -L \
             https://ci.inria.fr/sofa-ci-dev/job/nightly-generate-binaries/CI_BRANCH=${{ inputs.sofa_version }},CI_SCOPE=minimal/lastSuccessfulBuild/artifact/${SOFA_OS}/*zip*/${SOFA_OS}.zip
           unzip -qq "${{ runner.temp }}"/sofa_tmp/${SOFA_OS}.zip -d "${{ runner.temp }}/sofa_tmp/zip"
-          unzip -qq "${{ runner.temp }}"/sofa_tmp/zip/${SOFA_OS}/SOFA_*.zip -d "${{ runner.temp }}/sofa_tmp/binaries"   
+          unzip -qq "${{ runner.temp }}"/sofa_tmp/zip/${SOFA_OS}/SOFA_*.zip -d "${{ runner.temp }}/sofa_tmp/binaries"
           $SUDO mkdir -p "${{ inputs.sofa_root }}"
           $SUDO mv "${{ runner.temp }}"/sofa_tmp/binaries/SOFA_*/* "${{ inputs.sofa_root }}"
         fi
