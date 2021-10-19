@@ -16,7 +16,7 @@ outputs:
     value: ${{ inputs.sofa_version }}
   sofa_root:
     description: "SOFA root directory"
-    value: ${{ steps.set-sofa-root.sofa_root }}
+    value: ${{ steps.set-sofa-root.outputs.sofa_root }}
   run_branch:
     description: "Pretty git branch of this workflow run"
     value: ${{ steps.set-env-vars.outputs.run_branch }}
