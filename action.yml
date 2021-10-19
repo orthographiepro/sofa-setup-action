@@ -251,7 +251,7 @@ runs:
       shell: bash
       run: |
         SOFA_ROOT='${{ inputs.sofa_root }}'
-        echo "SOFA_ROOT=$SOFA_ROOT" | tee -a $GITHUB_ENV        
+        echo "SOFA_ROOT=$SOFA_ROOT" | tee -a $GITHUB_ENV
         echo "$SOFA_ROOT" >> $GITHUB_PATH
         if [[ "$RUNNER_OS" == "Windows" ]]; then
           echo "$SOFA_ROOT/bin" >> $GITHUB_PATH
