@@ -94,15 +94,15 @@ runs:
       id: install-python
       uses: actions/setup-python@v2
       with:
-        python-version: '3.9'
+        python-version: '3.8'
 
     - name: Set python-dependent env vars
       id: set-python-vars
       shell: bash
       run: |
-        PYTHONUSERBASE="/tmp/pythonuserbase"
+        PYTHONUSERBASE='/tmp/pythonuserbase'
         if [[ "$RUNNER_OS" == "Windows" ]]; then
-          PYTHONUSERBASE="C:/pythonuserbase"
+          PYTHONUSERBASE='C:\pythonuserbase'
         fi
         mkdir -p "$PYTHONUSERBASE" && chmod -R 777 "$PYTHONUSERBASE"
         echo "PYTHONUSERBASE=$PYTHONUSERBASE" | tee -a $GITHUB_ENV
