@@ -11,12 +11,12 @@ inputs:
     required: true
     default: 'v21.06'
 outputs:
-  sofa_root:
-    description: "SOFA root directory"
-    value: ${{ inputs.sofa_root }}
   sofa_version:
     description: "SOFA version"
     value: ${{ inputs.sofa_version }}
+  sofa_root:
+    description: "SOFA root directory"
+    value: ${{ steps.set-sofa-root.sofa_root }}
   run_branch:
     description: "Pretty git branch of this workflow run"
     value: ${{ steps.set-env-vars.outputs.run_branch }}
@@ -112,7 +112,7 @@ runs:
         PYTHON_ROOT="$(cd $PYTHON_ROOT && pwd -W 2>/dev/null || pwd)"   
         echo "PYTHON_ROOT=$PYTHON_ROOT" | tee -a $GITHUB_ENV
         echo "Python_ROOT=$PYTHON_ROOT" | tee -a $GITHUB_ENV        
-        echo "::set-output name=python_root::$(echo $PYTHON_ROOT)"     
+        echo "::set-output name=python_root::$(echo $PYTHON_ROOT)"
         
         SOFA_VERSION_FOR_DEPS="$(echo "${{ inputs.sofa_version }}" | sed 's:[^0-9]*::g')"
         if [ -z "$SOFA_VERSION_FOR_DEPS" ]; then
@@ -245,9 +245,15 @@ runs:
         ls -la "${{ inputs.sofa_root }}"
         echo '--------------- git-info.txt ---------------'
         cat "${{ inputs.sofa_root }}"/git-info.txt
-        echo '--------------------------------------------'
-        echo '${{ inputs.sofa_root }}' >> $GITHUB_PATH
+        
+    - name: Set SOFA_ROOT and outputs.sofa_root
+      id: set-sofa-root
+      shell: bash
+      run: |
+        SOFA_ROOT='${{ inputs.sofa_root }}'
+        echo "SOFA_ROOT=$SOFA_ROOT" | tee -a $GITHUB_ENV        
+        echo "$SOFA_ROOT" >> $GITHUB_PATH
         if [[ "$RUNNER_OS" == "Windows" ]]; then
-          echo '${{ inputs.sofa_root }}\bin' >> $GITHUB_PATH
-        fi
-        echo "SOFA_ROOT=${{ inputs.sofa_root }}" | tee -a $GITHUB_ENV
+          echo "$SOFA_ROOT/bin" >> $GITHUB_PATH
+        fi        
+        echo "::set-output name=sofa_root::$(echo $SOFA_ROOT)"
