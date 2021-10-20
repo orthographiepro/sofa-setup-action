@@ -34,6 +34,25 @@ outputs:
 runs:
   using: "composite"
   steps:
+    - name: Clear tool cache and PATH
+      shell: bash
+      run: |
+        mv "${{ runner.tool_cache }}" "${{ runner.tool_cache }}.old"
+        mkdir -p "${{ runner.tool_cache }}"
+        old_path="$PATH"
+        if [[ "$RUNNER_OS" == "Windows" ]]; then
+            tool_cache_escaped="$(echo "${{ runner.tool_cache }}" | sed 's#\\#\\\\#g')"
+            new_path="$(echo "$old_path" | sed 's#'"$tool_cache_escaped"'[^;]*;##g')"
+        else
+            new_path="$(echo "$old_path" | sed 's#${{ runner.tool_cache }}[^:]*:##g')"
+        fi
+        echo "-------- old_path --------"
+        echo $old_path
+        echo "-------- new_path --------"
+        echo $new_path
+        echo "--------------------------"
+        echo "$new_path" > $GITHUB_PATH
+
     - name: Set env vars
       id: set-env-vars
       shell: bash
