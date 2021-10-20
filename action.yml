@@ -113,6 +113,9 @@ runs:
         echo "PYTHON_ROOT=$PYTHON_ROOT" | tee -a $GITHUB_ENV
         echo "Python_ROOT=$PYTHON_ROOT" | tee -a $GITHUB_ENV        
         echo "::set-output name=python_root::$(echo $PYTHON_ROOT)"
+        echo "------- ls -la PYTHON_ROOT -------"
+        ls -la "$PYTHON_ROOT"
+        echo "----------------------------------"
         
         SOFA_VERSION_FOR_DEPS="$(echo "${{ inputs.sofa_version }}" | sed 's:[^0-9]*::g')"
         if [ -z "$SOFA_VERSION_FOR_DEPS" ]; then
