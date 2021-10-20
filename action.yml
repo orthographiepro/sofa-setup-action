@@ -37,19 +37,18 @@ runs:
     - name: Clear tool cache and PATH
       shell: bash
       run: |
+        tool_cache="$(cd "${{ runner.tool_cache }}" && pwd)"
         mv "${{ runner.tool_cache }}" "${{ runner.tool_cache }}.old"
         mkdir -p "${{ runner.tool_cache }}"
         old_path="$PATH"
+        new_path="$(echo "$old_path" | sed 's#'"$tool_cache"'[^:]*##g' | sed 's#::#:#g')"
         if [[ "$RUNNER_OS" == "Windows" ]]; then
-            tool_cache_escaped="$(echo "${{ runner.tool_cache }}" | sed 's#\\#\\\\#g')"
-            new_path="$(echo "$old_path" | sed 's#'"$tool_cache_escaped"'[^;]*;##g')"
-        else
-            new_path="$(echo "$old_path" | sed 's#${{ runner.tool_cache }}[^:]*:##g')"
+            new_path="$(echo "$new_path" | sed 's#/c/#C:/#g' | sed 's#/#\\#g')"
         fi
         echo "-------- old_path --------"
-        echo $old_path
+        echo "$old_path"
         echo "-------- new_path --------"
-        echo $new_path
+        echo "$new_path"
         echo "--------------------------"
         echo "$new_path" > $GITHUB_PATH
 
