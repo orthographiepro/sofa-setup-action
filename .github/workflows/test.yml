@@ -41,5 +41,7 @@ jobs:
             cmd //c 'echo Eigen3_ROOT=%Eigen3_ROOT%'
             cmd //c 'echo BOOST_ROOT=%BOOST_ROOT%'
             cmd //c 'echo Boost_ROOT=%Boost_ROOT%'
+            echo "----------------------------"
+            cmd //c 'echo PATH=%PATH%'
           fi
           
