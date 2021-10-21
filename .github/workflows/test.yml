@@ -27,8 +27,6 @@ jobs:
       - name: Print sofa-setup-action outputs
         shell: bash
         run: |
-          echo 'steps.sofa.outputs = ${{ toJSON(github.path) }}'
-          echo "----------------------------"
           echo 'steps.sofa.outputs = ${{ toJSON(steps.sofa.outputs) }}'
           echo "----------------------------"
           ls -la '${{ steps.sofa.outputs.sofa_root }}'
@@ -36,6 +34,16 @@ jobs:
           echo "PATH = $PATH"
           echo "----------------------------"
           echo "SOFA_ROOT = $SOFA_ROOT"
+          echo "----------------------------"
+          echo "----------------------------"
+          echo 'github.path = ${{ toJSON(github.path) }}'
+          echo "----------------------------"
+          ls -la '${{ runner.temp }}'
+          echo "----------------------------"
+          ls -la '${{ runner.temp }}'/_runner_file_commands/add_path*
+          echo "----------------------------"
+          cat '${{ runner.temp }}'/_runner_file_commands/add_path*
+          echo "----------------------------"
           
           if [[ "$RUNNER_OS" == "Windows" ]]; then
             echo "----------------------------"
