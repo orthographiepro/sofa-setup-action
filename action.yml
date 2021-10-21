@@ -40,12 +40,15 @@ runs:
         mv "${{ runner.tool_cache }}" "${{ runner.tool_cache }}.old"
         mkdir -p "${{ runner.tool_cache }}"
         
-        tool_cache_path="$(cd "${{ runner.tool_cache }}" && pwd)"
-        old_path="$PATH"
-        new_path="$(echo "$old_path" | sed 's#'"$tool_cache_path"'[^:]*##g' | sed 's#::#:#g')"
-        #if [[ "$RUNNER_OS" == "Windows" ]]; then
-        #    new_path="$(echo "$new_path" | sed 's#:#;#g' | sed 's#/c/#C:/#g' | sed 's#/#\\#g')"
-        #fi
+        if [[ "$RUNNER_OS" == "Windows" ]]; then
+          tool_cache_path="$(echo '${{ runner.tool_cache }}' | sed 's#\\#\\\\#g')"
+          old_path="$(cmd //c 'echo %PATH%')"
+          new_path="$(echo "$old_path" | sed 's#'"$tool_cache_path"'[^;]*##g' | sed 's#;;#;#g')"
+        else
+          tool_cache_path="${{ runner.tool_cache }}"
+          old_path="$PATH"
+          new_path="$(echo "$old_path" | sed 's#'"$tool_cache_path"'[^:]*##g' | sed 's#::#:#g')"
+        fi
         
         echo "-------- old_path --------"
         echo "$old_path"
