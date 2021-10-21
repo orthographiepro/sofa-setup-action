@@ -27,6 +27,8 @@ jobs:
       - name: Print sofa-setup-action outputs
         shell: bash
         run: |
+          echo 'steps.sofa.outputs = ${{ toJSON(github.path) }}'
+          echo "----------------------------"
           echo 'steps.sofa.outputs = ${{ toJSON(steps.sofa.outputs) }}'
           echo "----------------------------"
           ls -la '${{ steps.sofa.outputs.sofa_root }}'
