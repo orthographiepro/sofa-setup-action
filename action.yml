@@ -2,14 +2,18 @@
 name: 'SOFA Setup Action'
 description: 'Setup everything needed to build a SOFA plugin'
 inputs:
-  sofa_root:  # id of input
+  sofa_root:
     description: 'SOFA install directory'
     required: true
     default: '/opt/sofa'
-  sofa_version: # id of input
+  sofa_version:
     description: 'Major version of SOFA to install'
     required: true
     default: 'v21.06'
+  sofa_scope:
+    description: 'Choose between: minimal, standard, full'
+    required: false
+    default: 'minimal'
 outputs:
   sofa_version:
     description: "SOFA version"
@@ -259,7 +263,7 @@ runs:
           # directory does not exist or is empty
           mkdir -p "${{ runner.temp }}/sofa_tmp/zip" "${{ runner.temp }}/sofa_tmp/binaries"
           curl --output "${{ runner.temp }}/sofa_tmp/${SOFA_OS}.zip" -L \
-            https://ci.inria.fr/sofa-ci-dev/job/nightly-generate-binaries/CI_BRANCH=${{ inputs.sofa_version }},CI_SCOPE=minimal/lastSuccessfulBuild/artifact/${SOFA_OS}/*zip*/${SOFA_OS}.zip
+            https://ci.inria.fr/sofa-ci-dev/job/nightly-generate-binaries/CI_BRANCH=${{ inputs.sofa_version }},CI_SCOPE=${{ inputs.sofa_scope }}/lastSuccessfulBuild/artifact/${SOFA_OS}/*zip*/${SOFA_OS}.zip
           unzip -qq "${{ runner.temp }}"/sofa_tmp/${SOFA_OS}.zip -d "${{ runner.temp }}/sofa_tmp/zip"
           unzip -qq "${{ runner.temp }}"/sofa_tmp/zip/${SOFA_OS}/SOFA_*.zip -d "${{ runner.temp }}/sofa_tmp/binaries"
           $SUDO mkdir -p "${{ inputs.sofa_root }}"
