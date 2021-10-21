@@ -169,8 +169,10 @@ runs:
       run: |
         if [[ "$RUNNER_OS" == "Linux" ]]; then
           sudo apt-get -qq install ccache ninja-build
+          sudo apt-get -qq install libopengl0
         elif [[ "$RUNNER_OS" == "macOS" ]]; then
           brew install ccache ninja
+          brew install glew
         elif [[ "$RUNNER_OS" == "Windows" ]]; then
           cmd //c 'choco install -y --no-progress nsis curl ninja'
         fi
