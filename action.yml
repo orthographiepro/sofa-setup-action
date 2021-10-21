@@ -40,22 +40,22 @@ runs:
         mv "${{ runner.tool_cache }}" "${{ runner.tool_cache }}.old"
         mkdir -p "${{ runner.tool_cache }}"
         
-        if [[ "$RUNNER_OS" == "Windows" ]]; then
-          tool_cache_path="$(echo '${{ runner.tool_cache }}' | sed 's#\\#\\\\#g')"
-          old_path="$(cmd //c 'echo %PATH%')"
-          new_path="$(echo "$old_path" | sed 's#'"$tool_cache_path"'[^;]*##g' | sed 's#;;#;#g')"
-        else
-          tool_cache_path="${{ runner.tool_cache }}"
-          old_path="$PATH"
-          new_path="$(echo "$old_path" | sed 's#'"$tool_cache_path"'[^:]*##g' | sed 's#::#:#g')"
-        fi
-        
-        echo "-------- old_path --------"
-        echo "$old_path"
-        echo "-------- new_path --------"
-        echo "$new_path"
-        echo "--------------------------"
-        echo "$new_path" > $GITHUB_PATH
+        # It's not possible to clear the system PATH. It will append instead.
+        #if [[ "$RUNNER_OS" == "Windows" ]]; then
+        #  tool_cache_path="$(echo '${{ runner.tool_cache }}' | sed 's#\\#\\\\#g')"
+        #  old_path="$(cmd //c 'echo %PATH%')"
+        #  new_path="$(echo "$old_path" | sed 's#'"$tool_cache_path"'[^;]*##g' | sed 's#;;#;#g')"
+        #else
+        #  tool_cache_path="${{ runner.tool_cache }}"
+        #  old_path="$PATH"
+        #  new_path="$(echo "$old_path" | sed 's#'"$tool_cache_path"'[^:]*##g' | sed 's#::#:#g')"
+        #fi        
+        #echo "-------- old_path --------"
+        #echo "$old_path"
+        #echo "-------- new_path --------"
+        #echo "$new_path"
+        #echo "--------------------------"
+        #echo "$new_path" > $GITHUB_PATH
 
     - name: Set env vars
       id: set-env-vars
