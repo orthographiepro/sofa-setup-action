@@ -180,7 +180,8 @@ runs:
       run: |
         if [[ "$RUNNER_OS" == "Linux" ]]; then
           sudo apt-get -qq install ccache ninja-build
-          sudo apt-get -qq install libopengl0
+          sudo apt-get -qq install freeglut3-dev libopengl0
+          sudo apt-get -qq install libpng-dev libjpeg-dev libtiff-dev libglew-dev zlib1g-dev
         elif [[ "$RUNNER_OS" == "macOS" ]]; then
           brew install ccache ninja
           brew install glew
