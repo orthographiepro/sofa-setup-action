@@ -21,6 +21,9 @@ outputs:
   sofa_root:
     description: "SOFA root directory"
     value: ${{ steps.set-sofa-root.outputs.sofa_root }}
+  exe:
+    description: "Extension for executable files"
+    value: ${{ steps.set-env-vars.outputs.exe }}
   run_branch:
     description: "Pretty git branch of this workflow run"
     value: ${{ steps.set-env-vars.outputs.run_branch }}
@@ -71,6 +74,14 @@ runs:
         cp "${{ github.action_path }}"/*.yml "$GITHUB_WORKSPACE/sofa-setup-action"
         ls -la "$GITHUB_WORKSPACE/sofa-setup-action"
         echo "------------------------------------------------"
+        
+        # Set executable extension
+        EXE=''
+        if [[ "$RUNNER_OS" == "Windows" ]]; then
+          EXE='.exe'
+        fi
+        echo "EXE=$EXE" | tee -a $GITHUB_ENV
+        echo "::set-output name=exe::$(echo $EXE)"
         
         if [ -n "${{ github.event.number }}" ]; then
           RUN_BRANCH="PR-${{ github.event.number }}"
