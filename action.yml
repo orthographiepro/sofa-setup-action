@@ -14,6 +14,14 @@ inputs:
     description: 'Choose between: minimal, standard, full'
     required: false
     default: 'minimal'
+  python_version:
+    description: 'Python version to install'
+    required: true
+    default: '3.x'
+  workspace_auto_setup:
+    description: 'Should this action setup your workspace tree?'
+    required: false
+    default: 'true'
 outputs:
   sofa_version:
     description: "SOFA version"
@@ -36,6 +44,18 @@ outputs:
   vs_vsdevcmd:
     description: "Command to init VS environment"
     value: ${{ steps.set-env-vars.outputs.vs_vsdevcmd }}
+  src_path:
+    description: "Pretty git branch of this workflow run"
+    value: ${{ steps.set-env-vars.outputs.src_path }}
+  build_path:
+    description: "Pretty git branch of this workflow run"
+    value: ${{ steps.set-env-vars.outputs.build_path }}
+  install_path:
+    description: "Pretty git branch of this workflow run"
+    value: ${{ steps.set-env-vars.outputs.install_path }}
+  artifact_path:
+    description: "Pretty git branch of this workflow run"
+    value: ${{ steps.set-env-vars.outputs.artifact_path }}
 
 # Action code
 runs:
@@ -95,6 +115,35 @@ runs:
         echo "RUN_BRANCH=$RUN_BRANCH" | tee -a $GITHUB_ENV
         echo "::set-output name=run_branch::$(echo $RUN_BRANCH)"
         
+        # Auto-setup workspace + set all path env vars
+        if [[ "${{ inputs.workspace_auto_setup }}" == "true" ]]; then
+          mkdir -p "$GITHUB_WORKSPACE/build" "$GITHUB_WORKSPACE/install" "$GITHUB_WORKSPACE/artifact"
+               SRC_PATH="$(cd $GITHUB_WORKSPACE/src      && pwd -W 2>/dev/null || pwd)"
+             BUILD_PATH="$(cd $GITHUB_WORKSPACE/build    && pwd -W 2>/dev/null || pwd)"
+           INSTALL_PATH="$(cd $GITHUB_WORKSPACE/install  && pwd -W 2>/dev/null || pwd)"
+          ARTIFACT_PATH="$(cd $GITHUB_WORKSPACE/artifact && pwd -W 2>/dev/null || pwd)"
+          echo "SRC_PATH=$SRC_PATH" | tee -a $GITHUB_ENV
+          echo "BUILD_PATH=$BUILD_PATH" | tee -a $GITHUB_ENV
+          echo "INSTALL_PATH=$INSTALL_PATH" | tee -a $GITHUB_ENV
+          echo "ARTIFACT_PATH=$ARTIFACT_PATH" | tee -a $GITHUB_ENV
+          echo "::set-output name=src_path::$(echo $SRC_PATH)"
+          echo "::set-output name=build_path::$(echo $BUILD_PATH)"
+          echo "::set-output name=install_path::$(echo $INSTALL_PATH)"
+          echo "::set-output name=artifact_path::$(echo $ARTIFACT_PATH)"
+        else
+          echo "::set-output name=src_path::$(echo $GITHUB_WORKSPACE)"
+          echo "::set-output name=build_path::$(echo $GITHUB_WORKSPACE)"
+          echo "::set-output name=install_path::$(echo $GITHUB_WORKSPACE)"
+          echo "::set-output name=artifact_path::$(echo $GITHUB_WORKSPACE)"
+        fi
+        
+        # Set default settings for ccache
+        echo "CCACHE_COMPRESS=true" | tee -a $GITHUB_ENV
+        echo "CCACHE_COMPRESSLEVEL=6" | tee -a $GITHUB_ENV
+        echo "CCACHE_MAXSIZE=1G" | tee -a $GITHUB_ENV
+        echo "CCACHE_BASEDIR=$BUILD_PATH" | tee -a $GITHUB_ENV
+        echo "CCACHE_DIR=$GITHUB_WORKSPACE/.ccache" | tee -a $GITHUB_ENV
+        
         # TODO: find a better way to handle dependency versions
         EIGEN_INSTALL_DIR="/tmp/deps_cache_is_for_windows_only"
         BOOST_INSTALL_DIR="/tmp/deps_cache_is_for_windows_only"
@@ -132,7 +181,7 @@ runs:
       id: install-python
       uses: actions/setup-python@v2
       with:
-        python-version: '3.9'
+        python-version: ${{ inputs.python_version }}
 
     - name: Set python-dependent env vars
       id: set-python-vars
