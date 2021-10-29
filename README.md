@@ -4,7 +4,7 @@
 
 In a matrix workflow with a `sofa_branch` axis like `sofa_branch: [master, v21.06]`
 ```yml
-# Setup SOFA, dependencies, environment variables, workflow directory tree, ...
+# Setup SOFA, dependencies, environment variables, workspace tree, ...
 - name: Setup SOFA and environment
   id: sofa
   uses: sofa-framework/sofa-setup-action@master
@@ -19,8 +19,8 @@ In a matrix workflow with a `sofa_branch` axis like `sofa_branch: [master, v21.0
   with:
     path: ${{ steps.sofa.outputs.workspace_src_path }}
 
-# Build, install, test, deploy
-# <your steps come here>
+# Build, install, test, deploy my plugin
+# ...
 ```
 
 ## Parameters
