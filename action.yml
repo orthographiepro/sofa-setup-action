@@ -17,7 +17,7 @@ inputs:
   python_version:
     description: 'Python version to install'
     required: true
-    default: '3.x'
+    default: '3.9'
   workspace_auto_setup:
     description: 'Should this action setup your workspace tree?'
     required: false
