@@ -109,11 +109,11 @@ In a matrix workflow with a `sofa_branch` axis like `sofa_branch: [master, v21.0
   
   SOFA_VERSION_FOR_DEPS: [Internal] Variable used to install different deps upon SOFA version
   
-  BOOST_ROOT: [Windows only] Directory where Boost was installed, needed for CMake detection
-  Boost_ROOT: [Windows only] Directory where Boost was installed, needed for CMake detection
+  BOOST_ROOT: [Windows] Directory where Boost was installed, needed for CMake detection
+  Boost_ROOT: [Windows] Directory where Boost was installed, needed for CMake detection
   
-  EIGEN3_ROOT: [Windows only] Directory where Eigen was installed, needed for CMake detection
-  Eigen3_ROOT: [Windows only] Directory where Eigen was installed, needed for CMake detection
+  EIGEN3_ROOT: [Windows] Directory where Eigen was installed, needed for CMake detection
+  Eigen3_ROOT: [Windows] Directory where Eigen was installed, needed for CMake detection
   
   SOFA_ROOT: Directory where SOFA was installed
 ```
