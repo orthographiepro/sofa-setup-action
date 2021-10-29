@@ -44,18 +44,18 @@ outputs:
   vs_vsdevcmd:
     description: "Command to init VS environment"
     value: ${{ steps.set-env-vars.outputs.vs_vsdevcmd }}
-  src_path:
-    description: "Pretty git branch of this workflow run"
-    value: ${{ steps.set-env-vars.outputs.src_path }}
-  build_path:
-    description: "Pretty git branch of this workflow run"
-    value: ${{ steps.set-env-vars.outputs.build_path }}
-  install_path:
-    description: "Pretty git branch of this workflow run"
-    value: ${{ steps.set-env-vars.outputs.install_path }}
-  artifact_path:
-    description: "Pretty git branch of this workflow run"
-    value: ${{ steps.set-env-vars.outputs.artifact_path }}
+  workspace_src_path:
+    description: "Directory to checkout your sources after calling this action"
+    value: ${{ steps.set-env-vars.outputs.workspace_src_path }}
+  workspace_build_path:
+    description: "Directory to build your sources after calling this action"
+    value: ${{ steps.set-env-vars.outputs.workspace_build_path }}
+  workspace_install_path:
+    description: "Directory to install your binaries after calling this action"
+    value: ${{ steps.set-env-vars.outputs.workspace_install_path }}
+  workspace_artifact_path:
+    description: "Directory to package your binaries after calling this action"
+    value: ${{ steps.set-env-vars.outputs.workspace_artifact_path }}
 
 # Action code
 runs:
@@ -117,31 +117,31 @@ runs:
         
         # Auto-setup workspace + set all path env vars
         if [[ "${{ inputs.workspace_auto_setup }}" == "true" ]]; then
-          mkdir -p "$GITHUB_WORKSPACE/build" "$GITHUB_WORKSPACE/install" "$GITHUB_WORKSPACE/artifact"
-               SRC_PATH="$(cd $GITHUB_WORKSPACE/src      && pwd -W 2>/dev/null || pwd)"
-             BUILD_PATH="$(cd $GITHUB_WORKSPACE/build    && pwd -W 2>/dev/null || pwd)"
-           INSTALL_PATH="$(cd $GITHUB_WORKSPACE/install  && pwd -W 2>/dev/null || pwd)"
-          ARTIFACT_PATH="$(cd $GITHUB_WORKSPACE/artifact && pwd -W 2>/dev/null || pwd)"
-          echo "SRC_PATH=$SRC_PATH" | tee -a $GITHUB_ENV
-          echo "BUILD_PATH=$BUILD_PATH" | tee -a $GITHUB_ENV
-          echo "INSTALL_PATH=$INSTALL_PATH" | tee -a $GITHUB_ENV
-          echo "ARTIFACT_PATH=$ARTIFACT_PATH" | tee -a $GITHUB_ENV
-          echo "::set-output name=src_path::$(echo $SRC_PATH)"
-          echo "::set-output name=build_path::$(echo $BUILD_PATH)"
-          echo "::set-output name=install_path::$(echo $INSTALL_PATH)"
-          echo "::set-output name=artifact_path::$(echo $ARTIFACT_PATH)"
+          mkdir -p "$GITHUB_WORKSPACE/src" "$GITHUB_WORKSPACE/build" "$GITHUB_WORKSPACE/install" "$GITHUB_WORKSPACE/artifact"
+               WORKSPACE_SRC_PATH="$(cd $GITHUB_WORKSPACE/src      && pwd -W 2>/dev/null || pwd)"
+             WORKSPACE_BUILD_PATH="$(cd $GITHUB_WORKSPACE/build    && pwd -W 2>/dev/null || pwd)"
+           WORKSPACE_INSTALL_PATH="$(cd $GITHUB_WORKSPACE/install  && pwd -W 2>/dev/null || pwd)"
+          WORKSPACE_ARTIFACT_PATH="$(cd $GITHUB_WORKSPACE/artifact && pwd -W 2>/dev/null || pwd)"
         else
-          echo "::set-output name=src_path::$(echo $GITHUB_WORKSPACE)"
-          echo "::set-output name=build_path::$(echo $GITHUB_WORKSPACE)"
-          echo "::set-output name=install_path::$(echo $GITHUB_WORKSPACE)"
-          echo "::set-output name=artifact_path::$(echo $GITHUB_WORKSPACE)"
+               WORKSPACE_SRC_PATH="$GITHUB_WORKSPACE"
+             WORKSPACE_BUILD_PATH="$GITHUB_WORKSPACE"
+           WORKSPACE_INSTALL_PATH="$GITHUB_WORKSPACE"
+          WORKSPACE_ARTIFACT_PATH="$GITHUB_WORKSPACE"
         fi
+        echo "WORKSPACE_SRC_PATH=$WORKSPACE_SRC_PATH" | tee -a $GITHUB_ENV
+        echo "WORKSPACE_BUILD_PATH=$WORKSPACE_BUILD_PATH" | tee -a $GITHUB_ENV
+        echo "WORKSPACE_INSTALL_PATH=$WORKSPACE_INSTALL_PATH" | tee -a $GITHUB_ENV
+        echo "WORKSPACE_ARTIFACT_PATH=$WORKSPACE_ARTIFACT_PATH" | tee -a $GITHUB_ENV
+        echo "::set-output name=workspace_src_path::$(echo $WORKSPACE_SRC_PATH)"
+        echo "::set-output name=workspace_build_path::$(echo $WORKSPACE_BUILD_PATH)"
+        echo "::set-output name=workspace_install_path::$(echo $WORKSPACE_INSTALL_PATH)"
+        echo "::set-output name=workspace_artifact_path::$(echo $WORKSPACE_ARTIFACT_PATH)"
         
         # Set default settings for ccache
         echo "CCACHE_COMPRESS=true" | tee -a $GITHUB_ENV
         echo "CCACHE_COMPRESSLEVEL=6" | tee -a $GITHUB_ENV
         echo "CCACHE_MAXSIZE=1G" | tee -a $GITHUB_ENV
-        echo "CCACHE_BASEDIR=$BUILD_PATH" | tee -a $GITHUB_ENV
+        echo "CCACHE_BASEDIR=$WORKSPACE_BUILD_PATH" | tee -a $GITHUB_ENV
         echo "CCACHE_DIR=$GITHUB_WORKSPACE/.ccache" | tee -a $GITHUB_ENV
         
         # TODO: find a better way to handle dependency versions
