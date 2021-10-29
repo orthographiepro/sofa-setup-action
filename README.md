@@ -7,7 +7,7 @@ In a matrix workflow with a `sofa_branch` axis like `sofa_branch: [master, v21.0
 # Setup SOFA, dependencies, environment variables, workspace tree, ...
 - name: Setup SOFA and environment
   id: sofa
-  uses: sofa-framework/sofa-setup-action@master
+  uses: sofa-framework/sofa-setup-action@v3.0
   with:
     sofa_root: ${{ github.workspace }}/sofa
     sofa_version: ${{ matrix.sofa_branch }}
