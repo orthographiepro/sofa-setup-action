@@ -38,6 +38,9 @@ outputs:
   python_root:
     description: "Root directory of the Python installed for SOFA"
     value: ${{ steps.set-python-vars.outputs.python_root }}
+  python_version:
+    description: "Version of the Python installed for SOFA"
+    value: ${{ steps.set-python-vars.outputs.python_version }}
   vs_install_dir:
     description: "VS install directory"
     value: ${{ steps.set-env-vars.outputs.vs_install_dir }}
@@ -181,8 +184,9 @@ runs:
         PYTHON_ROOT="$(find $RUNNER_TOOL_CACHE -maxdepth 3 -type d -path '**/Python/${{ steps.install-python.outputs.python-version }}*/x64')"
         PYTHON_ROOT="$(cd $PYTHON_ROOT && pwd -W 2>/dev/null || pwd)"   
         echo "PYTHON_ROOT=$PYTHON_ROOT" | tee -a $GITHUB_ENV
-        echo "Python_ROOT=$PYTHON_ROOT" | tee -a $GITHUB_ENV        
+        echo "Python_ROOT=$PYTHON_ROOT" | tee -a $GITHUB_ENV
         echo "::set-output name=python_root::$(echo $PYTHON_ROOT)"
+        echo "::set-output name=python_version::${{ steps.install-python.outputs.python-version }}"
         echo "------- ls -la PYTHON_ROOT -------"
         ls -la "$PYTHON_ROOT"
         echo "----------------------------------"

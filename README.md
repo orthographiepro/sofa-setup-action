@@ -63,6 +63,8 @@ In a matrix workflow with a `sofa_branch` axis like `sofa_branch: [master, v21.0
     description: "Pretty git branch of this workflow run"
   python_root:
     description: "Root directory of the Python installed for SOFA"
+  python_version:
+    description: "Version of the Python installed for SOFA"
   vs_install_dir:
     description: "VS install directory"
   vs_vsdevcmd:
