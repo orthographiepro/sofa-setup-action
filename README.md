@@ -23,6 +23,8 @@ In a matrix workflow with a `sofa_branch` axis like `sofa_branch: [master, v21.0
 # ...
 ```
 
+A more detailed example is available in this repository: `examples/workflow.yml`
+
 ## Parameters
 
 ### Inputs
