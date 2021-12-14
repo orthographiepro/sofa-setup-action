@@ -326,7 +326,7 @@ runs:
         echo '------------- inputs.sofa_root -------------'
         ls -la "${{ inputs.sofa_root }}"
         echo '--------------- git-info.txt ---------------'
-        cat "${{ inputs.sofa_root }}"/git-info.txt
+        cat "${{ inputs.sofa_root }}"/git-info.txt 2>&1 || true
         
     - name: Set SOFA_ROOT and outputs.sofa_root
       id: set-sofa-root
