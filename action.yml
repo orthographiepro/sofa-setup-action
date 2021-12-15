@@ -296,6 +296,64 @@ runs:
           echo "$EIGEN_INSTALL_DIR" >> $GITHUB_PATH
         fi
 
+    - name: Set env vars for pybind11 installation
+      shell: bash
+      run: |
+        # Define pybind11 specs
+        PYBIND11_VERSION=2.4.3
+        PYBIND11_INSTALL_PATH="/tmp/deps_cache_is_for_windows_only"
+        if [[ "$RUNNER_OS" == "Windows" ]]; then
+          PYBIND11_INSTALL_PATH="C:/pybind11"
+        fi
+        echo "PYBIND11_VERSION=$PYBIND11_VERSION" | tee -a $GITHUB_ENV
+        echo "PYBIND11_INSTALL_PATH=$PYBIND11_INSTALL_PATH" | tee -a $GITHUB_ENV
+      
+    - name: Setup cache for pybind11 files
+      uses: actions/cache@v2
+      id: pybind11_cache
+      with:
+        path: ${{ env.PYBIND11_INSTALL_PATH }}
+        key: pybind11-${{ env.PYBIND11_VERSION }}_${{ runner.os }}_python-${{ inputs.python_version }}_${{ hashFiles('**/*.yml') }}
+    
+    - name: Install pybind11
+      shell: bash
+      run: |
+        # Build and install pybind11
+        if [[ "$RUNNER_OS" == "Windows" ]]; then
+          if ! ls -a "$PYBIND11_INSTALL_PATH"/* >/dev/null 2>&1; then
+            # directory does not exist or is empty
+            git clone -b v$PYBIND11_VERSION --depth 1 https://github.com/pybind/pybind11.git "${{ runner.temp }}/pybind11_tmp"
+            cmd //c "${{ steps.sofa.outputs.vs_vsdevcmd }} && \
+              cd /d ${{ runner.temp }}/pybind11_tmp && \
+              cmake \
+                -GNinja \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DPYBIND11_TEST=OFF \
+                -DCMAKE_INSTALL_PREFIX=$PYBIND11_INSTALL_PATH \
+                -DPYTHON_ROOT=$PYTHON_ROOT \
+                -DPython_ROOT=$PYTHON_ROOT \
+                -DPYTHON_EXECUTABLE=$PYTHON_ROOT/python.exe \
+                -DPython_EXECUTABLE=$PYTHON_ROOT/python.exe \
+                . && \
+                ninja install"
+          fi          
+          echo "pybind11_ROOT=$PYBIND11_INSTALL_PATH" | tee -a $GITHUB_ENV
+          echo "$PYBIND11_INSTALL_PATH" >> $GITHUB_PATH
+        else
+          git clone -b v${PYBIND11_VERSION} --depth 1 https://github.com/pybind/pybind11.git "${{ runner.temp }}/pybind11_tmp"
+          cd "${{ runner.temp }}/pybind11_tmp"
+          cmake \
+            -GNinja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DPYBIND11_TEST=OFF \
+            -DPYTHON_ROOT=$PYTHON_ROOT \
+            -DPython_ROOT=$PYTHON_ROOT \
+            -DPYTHON_EXECUTABLE=$PYTHON_ROOT/python \
+            -DPython_EXECUTABLE=$PYTHON_ROOT/python \
+            .
+          sudo ninja install
+        fi
+
     - name: Setup cache for SOFA files
       uses: actions/cache@v2
       id: sofa_cache
