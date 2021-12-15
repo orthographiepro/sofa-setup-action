@@ -323,7 +323,7 @@ runs:
           if ! ls -a "$PYBIND11_INSTALL_PATH"/* >/dev/null 2>&1; then
             # directory does not exist or is empty
             git clone -b v$PYBIND11_VERSION --depth 1 https://github.com/pybind/pybind11.git "${{ runner.temp }}/pybind11_tmp"
-            cmd //c "${{ steps.sofa.outputs.vs_vsdevcmd }} && \
+            cmd //c "${{ steps.set-env-vars.outputs.vs_vsdevcmd }} && \
               cd /d ${{ runner.temp }}/pybind11_tmp && \
               cmake \
                 -GNinja \
