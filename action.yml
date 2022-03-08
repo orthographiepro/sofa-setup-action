@@ -354,13 +354,6 @@ runs:
           sudo ninja install
         fi
 
-    - name: Setup cache for SOFA files
-      uses: actions/cache@v2
-      id: sofa_cache
-      with:
-        path: ${{ inputs.sofa_root }}
-        key: sofa-${{ inputs.sofa_version }}-${{ inputs.sofa_scope }}_${{ runner.os }}_${{ hashFiles('**/*.yml') }}
-
     - name: Download and install the latest SOFA ${{ inputs.sofa_version }} binaries
       shell: bash
       run: |
