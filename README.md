@@ -11,7 +11,7 @@ In a matrix workflow with a `sofa_branch` axis like `sofa_branch: [master, v21.0
   with:
     sofa_root: ${{ github.workspace }}/sofa
     sofa_version: ${{ matrix.sofa_branch }}
-    sofa_scope: 'standard'
+    sofa_scope: 'minimal'
 
 # Checkout my plugin sources into workspace_src_path (prepared by sofa-setup-action)
 - name: Checkout source code
@@ -41,7 +41,7 @@ A more detailed example is available in this repository: `examples/workflow.yml`
   sofa_scope:
     description: 'Choose between: minimal, standard, full'
     required: false
-    default: 'minimal'
+    default: 'standard'
   python_version:
     description: 'Python version to install'
     required: true
