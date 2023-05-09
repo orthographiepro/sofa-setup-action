@@ -300,7 +300,7 @@ runs:
       shell: bash
       run: |
         # Define pybind11 specs
-        PYBIND11_VERSION=2.4.3
+        PYBIND11_VERSION=2.6.2
         PYBIND11_INSTALL_PATH="/tmp/deps_cache_is_for_windows_only"
         if [[ "$RUNNER_OS" == "Windows" ]]; then
           PYBIND11_INSTALL_PATH="C:/pybind11"
