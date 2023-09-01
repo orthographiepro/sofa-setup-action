@@ -13,8 +13,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, macos-10.15, windows-2016]
-        sofa_branch: [master, v21.06]
+        os: [ubuntu-20.04, macos-11, windows-2019]
+        sofa_branch: [master, v21.06, v21.12, v22.06, v22.12, v23.06]
 
     steps:
       - name: Setup SOFA and deps
@@ -54,4 +54,3 @@ jobs:
             echo "----------------------------"
             cmd //c 'echo PATH=%PATH%'
           fi
-          
