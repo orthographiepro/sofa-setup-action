@@ -87,7 +87,7 @@ runs:
           EXE='.exe'
         fi
         echo "EXE=$EXE" | tee -a $GITHUB_ENV
-        echo "::set-output name=exe::$(echo $EXE)"
+        echo "name=exe::$(echo $EXE)" >> $GITHUB_OUTPUT
         
         if [ -n "${{ github.event.number }}" ]; then
           RUN_BRANCH="PR-${{ github.event.number }}"
@@ -99,7 +99,7 @@ runs:
           RUN_BRANCH="${GITHUB_REF#refs/heads/}"
         fi
         echo "RUN_BRANCH=$RUN_BRANCH" | tee -a $GITHUB_ENV
-        echo "::set-output name=run_branch::$(echo $RUN_BRANCH)"
+        echo "name=run_branch::$(echo $RUN_BRANCH)" >> $GITHUB_OUTPUT
         
         # Auto-setup workspace + env vars
         if [[ "${{ inputs.workspace_auto_setup }}" == "true" ]]; then
@@ -118,10 +118,10 @@ runs:
         echo "WORKSPACE_BUILD_PATH=$WORKSPACE_BUILD_PATH" | tee -a $GITHUB_ENV
         echo "WORKSPACE_INSTALL_PATH=$WORKSPACE_INSTALL_PATH" | tee -a $GITHUB_ENV
         echo "WORKSPACE_ARTIFACT_PATH=$WORKSPACE_ARTIFACT_PATH" | tee -a $GITHUB_ENV
-        echo "::set-output name=workspace_src_path::$(echo $WORKSPACE_SRC_PATH)"
-        echo "::set-output name=workspace_build_path::$(echo $WORKSPACE_BUILD_PATH)"
-        echo "::set-output name=workspace_install_path::$(echo $WORKSPACE_INSTALL_PATH)"
-        echo "::set-output name=workspace_artifact_path::$(echo $WORKSPACE_ARTIFACT_PATH)"
+        echo "name=workspace_src_path::$(echo $WORKSPACE_SRC_PATH)" >> $GITHUB_OUTPUT
+        echo "name=workspace_build_path::$(echo $WORKSPACE_BUILD_PATH)" >> $GITHUB_OUTPUT
+        echo "name=workspace_install_path::$(echo $WORKSPACE_INSTALL_PATH)" >> $GITHUB_OUTPUT
+        echo "name=workspace_artifact_path::$(echo $WORKSPACE_ARTIFACT_PATH)" >> $GITHUB_OUTPUT
         
         # Set default settings for ccache
         echo "CCACHE_COMPRESS=true" | tee -a $GITHUB_ENV
@@ -160,8 +160,8 @@ runs:
         echo "VS_INSTALL_DIR=$VS_INSTALL_DIR" | tee -a $GITHUB_ENV
         echo "VS_VSDEVCMD=$VS_VSDEVCMD" | tee -a $GITHUB_ENV
         
-        echo "::set-output name=vs_install_dir::$(echo $VS_INSTALL_DIR)"
-        echo "::set-output name=vs_vsdevcmd::$(echo $VS_VSDEVCMD)"
+        echo "name=vs_install_dir::$(echo $VS_INSTALL_DIR)" >> $GITHUB_OUTPUT
+        echo "name=vs_vsdevcmd::$(echo $VS_VSDEVCMD)" >> $GITHUB_OUTPUT
 
     - name: Install Python
       id: install-python
@@ -185,8 +185,8 @@ runs:
         PYTHON_ROOT="$(cd $PYTHON_ROOT && pwd -W 2>/dev/null || pwd)"   
         echo "PYTHON_ROOT=$PYTHON_ROOT" | tee -a $GITHUB_ENV
         echo "Python_ROOT=$PYTHON_ROOT" | tee -a $GITHUB_ENV
-        echo "::set-output name=python_root::$(echo $PYTHON_ROOT)"
-        echo "::set-output name=python_version::${{ steps.install-python.outputs.python-version }}"
+        echo "name=python_root::$(echo $PYTHON_ROOT)" >> $GITHUB_OUTPUT
+        echo "name=python_version::${{ steps.install-python.outputs.python-version }}" >> $GITHUB_OUTPUT
         echo "------- ls -la PYTHON_ROOT -------"
         ls -la "$PYTHON_ROOT"
         echo "----------------------------------"
@@ -307,14 +307,14 @@ runs:
         fi
         echo "PYBIND11_VERSION=$PYBIND11_VERSION" | tee -a $GITHUB_ENV
         echo "PYBIND11_INSTALL_PATH=$PYBIND11_INSTALL_PATH" | tee -a $GITHUB_ENV
-      
+
     - name: Setup cache for pybind11 files
       uses: actions/cache@v2
       id: pybind11_cache
       with:
         path: ${{ env.PYBIND11_INSTALL_PATH }}
         key: pybind11-${{ env.PYBIND11_VERSION }}_${{ runner.os }}_python-${{ inputs.python_version }}_${{ hashFiles('**/*.yml') }}
-    
+
     - name: Install pybind11
       shell: bash
       run: |
@@ -378,7 +378,7 @@ runs:
         ls -la "${{ inputs.sofa_root }}"
         echo '--------------- git-info.txt ---------------'
         cat "${{ inputs.sofa_root }}"/git-info.txt 2>&1 || true
-        
+
     - name: Set SOFA_ROOT and outputs.sofa_root
       id: set-sofa-root
       shell: bash
@@ -389,4 +389,4 @@ runs:
         if [[ "$RUNNER_OS" == "Windows" ]]; then
           echo "$SOFA_ROOT\bin" >> $GITHUB_PATH
         fi
-        echo "::set-output name=sofa_root::$(echo $SOFA_ROOT)"
+        echo "name=sofa_root::$(echo $SOFA_ROOT)" >> $GITHUB_OUTPUT
