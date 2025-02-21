@@ -170,7 +170,7 @@ runs:
         echo "name=vs_install_dir::$(echo $VS_INSTALL_DIR)" >> $GITHUB_OUTPUT
         echo "name=vs_vsdevcmd::$(echo $VS_VSDEVCMD)" >> $GITHUB_OUTPUT
 
-        PYTHONPATH="${{ inputs.sofa_root }}/SOFA_${{ inputs.sofa_version }}.00_Win64/plugins/SofaPython3/lib/python3/site-packages/""
+        PYTHONPATH="${{ inputs.sofa_root }}/SOFA_${{ inputs.sofa_version }}.00_Win64/plugins/SofaPython3/lib/python3/site-packages/"
         echo "PYTHONPATH=$PYTHONPATH" | tee -a $GITHUB_ENV
         echo "name=pythonpath::$(echo $PYTHONPATH)" >> $GITHUB_OUTPUT
 
