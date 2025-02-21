@@ -190,7 +190,6 @@ runs:
           $SUDO mkdir -p "${{ inputs.sofa_root }}"
           $SUDO unzip -qq /opt/sofa_tmp/${SOFA_OS}.zip -d "/opt/sofa_tmp/zip"
           $SUDO mv /opt/sofa_tmp/zip/SOFA_${{ inputs.sofa_version }}.00_Win64/* "${{ inputs.sofa_root }}"
-          ls ${{inputs.sofa_root}}
         fi
         echo '--------------------------------------------'
         echo "SOFA successfully downloaded and installed in ${{ inputs.sofa_root }}"
