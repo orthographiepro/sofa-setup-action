@@ -163,6 +163,35 @@ runs:
         echo "name=vs_install_dir::$(echo $VS_INSTALL_DIR)" >> $GITHUB_OUTPUT
         echo "name=vs_vsdevcmd::$(echo $VS_VSDEVCMD)" >> $GITHUB_OUTPUT
 
+    - name: Download and install the latest SOFA ${{ inputs.sofa_version }} binaries
+      shell: bash
+      run: |
+        # Download and install the latest SOFA ${{ inputs.sofa_version }} binaries
+        SOFA_OS="$RUNNER_OS"
+        if [[ "$SOFA_OS" == "macOS" ]]; then
+          SOFA_OS="MacOS"
+        fi
+        if ! ls -a "${{ inputs.sofa_root }}"/* >/dev/null 2>&1; then
+          # directory does not exist or is empty
+          mkdir -p "/opt/sofa_tmp/zip" "/opt/sofa_tmp/binaries"
+          curl --output "/opt/sofa_tmp/${SOFA_OS}.zip" -L \
+            https://ci.inria.fr/sofa-ci-dev/job/nightly-generate-binaries/CI_BRANCH=${{ inputs.sofa_version }},CI_SCOPE=${{ inputs.sofa_scope }}/lastSuccessfulBuild/artifact/${SOFA_OS}/*zip*/${SOFA_OS}.zip
+          export MSR_SWITCH_PWD=$PWD
+          cd /opt/sofa_tmp/zip
+          jar xvf /opt/sofa_tmp/${SOFA_OS}.zip
+          cd /opt/sofa_tmp/binaries
+          jar xvf /opt/sofa_tmp/zip/${SOFA_OS}/SOFA_*.zip
+          cd $MSR_SWITCH_PWD
+          $SUDO mkdir -p "${{ inputs.sofa_root }}"
+          $SUDO mv /opt/sofa_tmp/binaries/SOFA_*/* "${{ inputs.sofa_root }}"
+        fi
+        echo '--------------------------------------------'
+        echo "SOFA successfully downloaded and installed in ${{ inputs.sofa_root }}"
+        echo '------------- inputs.sofa_root -------------'
+        ls -la "${{ inputs.sofa_root }}"
+        echo '--------------- git-info.txt ---------------'
+        cat "${{ inputs.sofa_root }}"/git-info.txt 2>&1 || true
+
     - name: Install Python
       id: install-python
       uses: actions/setup-python@v4
@@ -354,30 +383,9 @@ runs:
           sudo ninja install
         fi
 
-    - name: Download and install the latest SOFA ${{ inputs.sofa_version }} binaries
+    - name: placeholder for unzip 
       shell: bash
-      run: |
-        # Download and install the latest SOFA ${{ inputs.sofa_version }} binaries
-        SOFA_OS="$RUNNER_OS"
-        if [[ "$SOFA_OS" == "macOS" ]]; then
-          SOFA_OS="MacOS"
-        fi
-        if ! ls -a "${{ inputs.sofa_root }}"/* >/dev/null 2>&1; then
-          # directory does not exist or is empty
-          mkdir -p "/opt/sofa_tmp/zip" "/opt/sofa_tmp/binaries"
-          curl --output "/opt/sofa_tmp/${SOFA_OS}.zip" -L \
-            https://ci.inria.fr/sofa-ci-dev/job/nightly-generate-binaries/CI_BRANCH=${{ inputs.sofa_version }},CI_SCOPE=${{ inputs.sofa_scope }}/lastSuccessfulBuild/artifact/${SOFA_OS}/*zip*/${SOFA_OS}.zip
-          unzip -qq /opt/sofa_tmp/${SOFA_OS}.zip -d "/opt/sofa_tmp/zip"
-          unzip -qq /opt/sofa_tmp/zip/${SOFA_OS}/SOFA_*.zip -d "/opt/sofa_tmp/binaries"
-          $SUDO mkdir -p "${{ inputs.sofa_root }}"
-          $SUDO mv /opt/sofa_tmp/binaries/SOFA_*/* "${{ inputs.sofa_root }}"
-        fi
-        echo '--------------------------------------------'
-        echo "SOFA successfully downloaded and installed in ${{ inputs.sofa_root }}"
-        echo '------------- inputs.sofa_root -------------'
-        ls -la "${{ inputs.sofa_root }}"
-        echo '--------------- git-info.txt ---------------'
-        cat "${{ inputs.sofa_root }}"/git-info.txt 2>&1 || true
+      run: "echo moved to before"
 
     - name: Set SOFA_ROOT and outputs.sofa_root
       id: set-sofa-root
