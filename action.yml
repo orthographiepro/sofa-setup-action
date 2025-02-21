@@ -178,9 +178,11 @@ runs:
             https://ci.inria.fr/sofa-ci-dev/job/nightly-generate-binaries/CI_BRANCH=${{ inputs.sofa_version }},CI_SCOPE=${{ inputs.sofa_scope }}/lastSuccessfulBuild/artifact/${SOFA_OS}/*zip*/${SOFA_OS}.zip
           export MSR_SWITCH_PWD=$PWD
           cd /opt/sofa_tmp/zip
-          jar xvf /opt/sofa_tmp/${SOFA_OS}.zip
+          7z x /opt/sofa_tmp/${SOFA_OS}.zip
+          ls
           cd /opt/sofa_tmp/binaries
-          jar xvf /opt/sofa_tmp/zip/${SOFA_OS}/SOFA_*.zip
+          7z x /opt/sofa_tmp/zip/${SOFA_OS}/SOFA_*.zip
+          ls
           cd $MSR_SWITCH_PWD
           $SUDO mkdir -p "${{ inputs.sofa_root }}"
           $SUDO mv /opt/sofa_tmp/binaries/SOFA_*/* "${{ inputs.sofa_root }}"
