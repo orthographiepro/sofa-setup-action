@@ -180,14 +180,8 @@ runs:
           mkdir -p "/opt/sofa_tmp/zip" "/opt/sofa_tmp/binaries"
           curl --output "/opt/sofa_tmp/${SOFA_OS}.zip" -L \
               https://github.com/sofa-framework/sofa/releases/download/v24.06.00/SOFA_v24.06.00_Win64.zip
-          export MSR_SWITCH_PWD=$PWD
-          cd /opt/sofa_tmp/zip
-          7z x /opt/sofa_tmp/${SOFA_OS}.zip
-          ls
-          cd /opt/sofa_tmp/binaries
-          7z x /opt/sofa_tmp/zip/${SOFA_OS}/SOFA_*.zip
-          ls
-          cd $MSR_SWITCH_PWD
+          unzip -qq /opt/sofa_tmp/${SOFA_OS}.zip -d "/opt/sofa_tmp/zip"
+          unzip -qq /opt/sofa_tmp/zip/${SOFA_OS}/SOFA_*.zip -d "/opt/sofa_tmp/binaries"
           $SUDO mkdir -p "${{ inputs.sofa_root }}"
           $SUDO mv /opt/sofa_tmp/binaries/SOFA_*/* "${{ inputs.sofa_root }}"
         fi
