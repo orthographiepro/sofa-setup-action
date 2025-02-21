@@ -189,7 +189,7 @@ runs:
               https://github.com/sofa-framework/sofa/releases/download/${{ inputs.sofa_version }}.00/SOFA_${{ inputs.sofa_version }}.00_Win64.zip
           $SUDO mkdir -p "${{ inputs.sofa_root }}"
           $SUDO unzip -qq /opt/sofa_tmp/${SOFA_OS}.zip -d "/opt/sofa_tmp/zip"
-          $SUDO mv "/opt/sofa_tmp/zip/SOFA_*/*" "${{ inputs.sofa_root }}"
+          $SUDO mv /opt/sofa_tmp/zip/SOFA_${{ inputs.sofa_version }}.00_Win64/* "${{ inputs.sofa_root }}"
           ls ${{inputs.sofa_root}}
         fi
         echo '--------------------------------------------'
