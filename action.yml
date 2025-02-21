@@ -170,7 +170,7 @@ runs:
         echo "name=vs_install_dir::$(echo $VS_INSTALL_DIR)" >> $GITHUB_OUTPUT
         echo "name=vs_vsdevcmd::$(echo $VS_VSDEVCMD)" >> $GITHUB_OUTPUT
 
-        PYTHONPATH="${{ inputs.sofa_root }}/SOFA_${{ inputs.sofa_version }}.00_Win64/plugins/SofaPython3/lib/python3/site-packages/"
+        PYTHONPATH="${{ inputs.sofa_root }}/plugins/SofaPython3/lib/python3/site-packages/"
         echo "PYTHONPATH=$PYTHONPATH" | tee -a $GITHUB_ENV
         echo "name=pythonpath::$(echo $PYTHONPATH)" >> $GITHUB_OUTPUT
 
@@ -188,7 +188,9 @@ runs:
           curl --output "/opt/sofa_tmp/${SOFA_OS}.zip" -L \
               https://github.com/sofa-framework/sofa/releases/download/${{ inputs.sofa_version }}.00/SOFA_${{ inputs.sofa_version }}.00_Win64.zip
           $SUDO mkdir -p "${{ inputs.sofa_root }}"
-          $SUDO unzip -qq /opt/sofa_tmp/${SOFA_OS}.zip -d "${{ inputs.sofa_root }}"
+          $SUDO unzip /opt/sofa_tmp/${SOFA_OS}.zip -d "/opt/sofa_tmp/zip"
+          $SUDO mv "/opt/sofa_tmp/zip/SOFA_*/*" "${{ inputs.sofa_root }}"
+          ls ${{inputs.sofa_root}}
         fi
         echo '--------------------------------------------'
         echo "SOFA successfully downloaded and installed in ${{ inputs.sofa_root }}"
