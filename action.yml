@@ -364,13 +364,13 @@ runs:
         fi
         if ! ls -a "${{ inputs.sofa_root }}"/* >/dev/null 2>&1; then
           # directory does not exist or is empty
-          mkdir -p "${{ runner.temp }}/sofa_tmp/zip" "${{ runner.temp }}/sofa_tmp/binaries"
-          curl --output "${{ runner.temp }}/sofa_tmp/${SOFA_OS}.zip" -L \
+          mkdir -p "/opt/sofa_tmp/zip" "/opt/sofa_tmp/binaries"
+          curl --output "/opt/sofa_tmp/${SOFA_OS}.zip" -L \
             https://ci.inria.fr/sofa-ci-dev/job/nightly-generate-binaries/CI_BRANCH=${{ inputs.sofa_version }},CI_SCOPE=${{ inputs.sofa_scope }}/lastSuccessfulBuild/artifact/${SOFA_OS}/*zip*/${SOFA_OS}.zip
-          unzip -qq "${{ runner.temp }}"/sofa_tmp/${SOFA_OS}.zip -d "${{ runner.temp }}/sofa_tmp/zip"
-          unzip -qq "${{ runner.temp }}"/sofa_tmp/zip/${SOFA_OS}/SOFA_*.zip -d "${{ runner.temp }}/sofa_tmp/binaries"
+          unzip -qq /opt/sofa_tmp/${SOFA_OS}.zip -d "/opt/sofa_tmp/zip"
+          unzip -qq /opt/sofa_tmp/zip/${SOFA_OS}/SOFA_*.zip -d "/opt/sofa_tmp/binaries"
           $SUDO mkdir -p "${{ inputs.sofa_root }}"
-          $SUDO mv "${{ runner.temp }}"/sofa_tmp/binaries/SOFA_*/* "${{ inputs.sofa_root }}"
+          $SUDO mv /opt/sofa_tmp/binaries/SOFA_*/* "${{ inputs.sofa_root }}"
         fi
         echo '--------------------------------------------'
         echo "SOFA successfully downloaded and installed in ${{ inputs.sofa_root }}"
