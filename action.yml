@@ -59,6 +59,9 @@ outputs:
   workspace_artifact_path:
     description: "Directory to package your binaries after calling this action"
     value: ${{ steps.set-env-vars.outputs.workspace_artifact_path }}
+  pythonpath:
+    description: "Where site packages are taken from, including SofaPython3"
+    value: ${{ steps.set-env-vars.outputs.pythonpath }}
 
 # Action code
 
@@ -167,6 +170,10 @@ runs:
         echo "name=vs_install_dir::$(echo $VS_INSTALL_DIR)" >> $GITHUB_OUTPUT
         echo "name=vs_vsdevcmd::$(echo $VS_VSDEVCMD)" >> $GITHUB_OUTPUT
 
+        PYTHONPATH=${{ input.sofa_root }}/SOFA_${{ inputs.sofa_version }}.00_Win64/plugins/SofaPython3/lib/python3/site-packages/
+        echo "PYTHONPATH=$PYTHONPATH" | tee -a $GITHUB_ENV
+        echo "name=pythonpath::$(echo $PYTHONPATH)" >> $GITHUB_OUTPUT
+
     - name: Download and install the latest SOFA ${{ inputs.sofa_version }} binaries
       shell: bash
       run: |
@@ -177,11 +184,11 @@ runs:
         fi
         if ! ls -a "${{ inputs.sofa_root }}"/* >/dev/null 2>&1; then
           # directory does not exist or is empty
-          mkdir -p "/opt/sofa_tmp/zip" "/opt/sofa_tmp/binaries"
-          curl --output "/opt/sofa_tmp/${SOFA_OS}.zip" -L \
-              https://github.com/sofa-framework/sofa/releases/download/v24.06.00/SOFA_v24.06.00_Win64.zip
+          mkdir -p "${{ runner.temp }}/sofa_tmp/zip" "${{ runner.temp }}/sofa_tmp/binaries"
+          curl --output "${{ runner.temp }}/sofa_tmp/${SOFA_OS}.zip" -L \
+              https://github.com/sofa-framework/sofa/releases/download/${{ inputs.sofa_version }}.00/SOFA_${{ inputs.sofa_version }}.00_Win64.zip
           $SUDO mkdir -p "${{ inputs.sofa_root }}"
-          $SUDO unzip -qq /opt/sofa_tmp/${SOFA_OS}.zip -d "${{ inputs.sofa_root }}"
+          $SUDO unzip -qq ${{ runner.temp }}/sofa_tmp/${SOFA_OS}.zip -d "${{ inputs.sofa_root }}"
         fi
         echo '--------------------------------------------'
         echo "SOFA successfully downloaded and installed in ${{ inputs.sofa_root }}"
