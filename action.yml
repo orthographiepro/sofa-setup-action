@@ -9,7 +9,7 @@ inputs:
   sofa_version:
     description: 'Major version of SOFA to install'
     required: true
-    default: 'v21.06'
+    default: 'v24.06'
   sofa_scope:
     description: 'Choose between: minimal, standard, full'
     required: false
@@ -165,7 +165,7 @@ runs:
 
     - name: Install Python
       id: install-python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ inputs.python_version }}
 
@@ -228,7 +228,7 @@ runs:
         fi
 
     - name: Setup cache for Boost files
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       id: boost_cache
       with:
         path: ${{ env.BOOST_INSTALL_DIR }}
@@ -269,7 +269,7 @@ runs:
         fi
 
     - name: Setup cache for Eigen files
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       id: eigen_cache
       with:
         path: ${{ env.EIGEN_INSTALL_DIR }}
@@ -309,7 +309,7 @@ runs:
         echo "PYBIND11_INSTALL_PATH=$PYBIND11_INSTALL_PATH" | tee -a $GITHUB_ENV
 
     - name: Setup cache for pybind11 files
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       id: pybind11_cache
       with:
         path: ${{ env.PYBIND11_INSTALL_PATH }}
