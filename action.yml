@@ -323,19 +323,19 @@ runs:
           if ! ls -a "$PYBIND11_INSTALL_PATH"/* >/dev/null 2>&1; then
             # directory does not exist or is empty
             git clone -b v$PYBIND11_VERSION --depth 1 https://github.com/pybind/pybind11.git "${{ runner.temp }}/pybind11_tmp"
-            cmd //c "${{ steps.set-env-vars.outputs.vs_vsdevcmd }} && \
-              cd /d ${{ runner.temp }}/pybind11_tmp && \
-              cmake \
-                -GNinja \
-                -DCMAKE_BUILD_TYPE=Release \
-                -DPYBIND11_TEST=OFF \
-                -DCMAKE_INSTALL_PREFIX=$PYBIND11_INSTALL_PATH \
-                -DPYTHON_ROOT=$PYTHON_ROOT \
-                -DPython_ROOT=$PYTHON_ROOT \
-                -DPYTHON_EXECUTABLE=$PYTHON_ROOT/python.exe \
-                -DPython_EXECUTABLE=$PYTHON_ROOT/python.exe \
-                . && \
-                ninja install"
+            cmd //c "${{ steps.set-env-vars.outputs.vs_vsdevcmd }}
+            cd /d ${{ runner.temp }}/pybind11_tmp
+            cmake \
+              -GNinja \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DPYBIND11_TEST=OFF \
+              -DCMAKE_INSTALL_PREFIX=$PYBIND11_INSTALL_PATH \
+              -DPYTHON_ROOT=$PYTHON_ROOT \
+              -DPython_ROOT=$PYTHON_ROOT \
+              -DPYTHON_EXECUTABLE=$PYTHON_ROOT/python.exe \
+              -DPython_EXECUTABLE=$PYTHON_ROOT/python.exe \
+              . && \
+              ninja install"
           fi          
           echo "pybind11_ROOT=$PYBIND11_INSTALL_PATH" | tee -a $GITHUB_ENV
           echo "$PYBIND11_INSTALL_PATH" >> $GITHUB_PATH
